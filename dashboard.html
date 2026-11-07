@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISS-DS | Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; min-height: 100vh; background: #f0f4f8; display: flex; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: #0f2744;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 25px 20px;
+            position: fixed;
+            height: 100vh;
+        }
+        .brand { font-size: 20px; font-weight: bold; margin-bottom: 30px; display: flex; align-items: center; gap: 10px; color: #61b5ff; }
+        .nav-links { display: flex; flex-direction: column; gap: 8px; flex-grow: 1; }
+        .nav-link {
+            padding: 12px 15px; border-radius: 8px; color: #b0c4de; text-decoration: none; font-size: 14px; font-weight: 500; transition: 0.2s;
+        }
+        .nav-link:hover, .nav-link.active { background: #2878c8; color: white; }
+        .sidebar-footer { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; font-size: 13px; color: #9bb2cd; }
+        .sidebar-footer a { color: #ff8080; text-decoration: none; display: block; margin-top: 8px; font-weight: bold; }
+
+        /* Main Content Area */
+        .main-content {
+            margin-left: 260px;
+            flex-grow: 1;
+            padding: 30px;
+            max-width: calc(100vw - 260px);
+        }
+
+        /* Top Header */
+        .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .header-title h1 { color: #0f2744; font-size: 24px; margin-bottom: 4px; }
+        .header-title p { color: #666; font-size: 14px; }
+        .btn-primary { padding: 10px 18px; border-radius: 8px; background: #2878c8; color: white; text-decoration: none; font-weight: bold; font-size: 14px; transition: 0.2s; }
+        .btn-primary:hover { background: #1769aa; }
+
+        /* Bento Grid Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; }
+        .stat-card p { color: #666; font-size: 13px; font-weight: bold; margin-bottom: 8px; }
+        .stat-card h3 { color: #0f2744; font-size: 26px; }
+
+        /* Controls / Search Bar */
+        .controls { display: flex; gap: 15px; margin-bottom: 25px; background: white; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; }
+        input, select { flex: 1; padding: 11px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #f8fafc; }
+        input:focus, select:focus { border-color: #2878c8; background: white; }
+        .search-btn { padding: 11px 20px; border: none; border-radius: 8px; background: #2878c8; color: white; font-weight: bold; cursor: pointer; }
+
+        /* Table Card */
+        .table-card { background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 14px 20px; text-align: left; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+        th { background-color: #f8fafc; color: #475569; font-weight: bold; }
+        tbody tr:hover { background-color: #f8fafc; }
+        .tag { display: inline-block; padding: 4px 10px; border-radius: 6px; background: #e2e8f0; color: #334155; font-size: 12px; font-weight: bold; }
+
+        /* Grid layout for the document cards */
+        #documentGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* Individual Card Styling */
+        .doc-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .doc-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        /* Simulated preview thumbnail area */
+        .doc-preview-thumb {
+            height: 150px;
+            background-color: #f1f3f4;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #5f6368;
+            font-size: 3rem; /* Large icon */
+        }
+
+        /* Card details area */
+        .doc-details {
+            padding: 15px;
+        }
+
+        .doc-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .doc-meta {
+            font-size: 0.85em;
+            color: #5f6368;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Preview Modal (Overlay) */
+        #previewModal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+        }
+
+        .modal-content {
+            position: relative;
+            margin: 5% auto;
+            width: 80%;
+            height: 80%;
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* The actual iframe showing the document */
+        #previewFrame {
+            flex-grow: 1;
+            width: 100%;
+            border: none;
+        }
+
+        /* Modal controls */
+        .modal-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .close-btn {
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .download-btn {
+            background-color: #1a73e8;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+        <div>
+            <div class="brand">📁 ISS-DS Portal</div>
+            <div class="nav-links">
+                <a href="/dashboard" class="nav-link active">📊 Dashboard</a>
+                <a href="/upload" class="nav-link">➕ Upload Document</a>
+                <a href="/activity-log" class="nav-link">📋 Activity Log</a>
+                <a href="/admin" class="nav-link">⚙️ Admin Panel</a>
+            </div>
+        </div>
+        <div class="sidebar-footer">
+            <div id="userDisplay">Loading session...</div>
+            <a href="/logout">🚪 Logout</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        
+        <div class="top-header">
+            <div class="header-title">
+                <h1>Dashboard</h1>
+                <p>Search, filter, and review ISS-DS records.</p>
+            </div>
+            <a href="/upload" class="btn-primary">+ Upload New</a>
+        </div>
+
+        <!-- Bento Grid Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <p>Total Documents</p>
+                <h3 id="statTotal">0</h3>
+            </div>
+            <div class="stat-card">
+                <p>Reports</p>
+                <h3 id="statReports">0</h3>
+            </div>
+            <div class="stat-card">
+                <p>Memos</p>
+                <h3 id="statMemos">0</h3>
+            </div>
+            <div class="stat-card">
+                <p>Pending Approval</p>
+                <h3 id="statPending">0</h3>
+            </div>
+        </div>
+
+        <!-- Search Controls -->
+        <div class="controls">
+            <input type="text" id="searchInput" placeholder="Search by document title or keyword...">
+            <select id="categoryFilter">
+                <option value="">All Categories</option>
+                <option value="Reports">📊 Reports</option>
+                <option value="Memos">📝 Memos</option>
+                <option value="Records">📂 Records</option>
+                <option value="Finance">💰 Finance</option>
+            </select>
+            <button class="search-btn" onclick="fetchDocuments()">Search Repository</button>
+        </div>
+
+        <!-- The Grid Container -->
+        <div id="documentGrid">
+            <!-- Document cards will be inserted here by JavaScript -->
+        </div>
+
+        <!-- The Preview Modal -->
+        <div id="previewModal">
+            <div class="modal-content">
+                <div class="modal-controls">
+                    <span class="close-btn" onclick="closePreview()">✖ Close Preview</span>
+                    <a id="modalDownloadBtn" class="download-btn" href="#" download>Download File</a>
+                </div>
+                <!-- Iframe to display the document -->
+                <iframe id="previewFrame" src=""></iframe>
+            </div>
+        </div>
+
+    </div>
+
+   <script>
+    async function fetchDocuments() {
+        try {
+            const response = await fetch('/api/documents');
+            const apiResult = await response.json();
+            const data = apiResult.documents;
+
+            const userDisplayEl = document.getElementById('userDisplay');
+            if (userDisplayEl && apiResult.userRole) {
+                userDisplayEl.innerText = `Logged in as: @${apiResult.userRole}`;
+            }
+
+            // 1. UPDATE DASHBOARD COUNTERS (Fixed IDs to match your HTML)
+            const totalDocsEl = document.getElementById('statTotal');
+            const reportsEl = document.getElementById('statReports');
+            const memosEl = document.getElementById('statMemos');
+            const pendingEl = document.getElementById('statPending');
+
+            if (totalDocsEl) totalDocsEl.innerText = data.length;
+            if (reportsEl) reportsEl.innerText = data.filter(doc => doc.category === 'Reports').length;
+            if (memosEl) memosEl.innerText = data.filter(doc => doc.category === 'Memos').length;
+            if (pendingEl) pendingEl.innerText = data.filter(doc => doc.status === 'Pending Review' || doc.status === 'Pending').length;
+            
+            // 2. RENDER THE DOCUMENT GRID
+            const gridContainer = document.getElementById('documentGrid');
+            if (gridContainer) gridContainer.innerHTML = ''; // Clear existing
+
+            data.forEach(doc => {
+                const filePath = `/repository/${doc.category}/${doc.standardized_file_name}`;
+                const fileExt = doc.standardized_file_name.split('.').pop().toLowerCase();
+                
+                // Choose a thumbnail icon based on file type
+                let icon = '📄';
+                if (fileExt === 'pdf') icon = '📕';
+                if (['doc', 'docx'].includes(fileExt)) icon = '📘';
+                if (['xls', 'xlsx'].includes(fileExt)) icon = '📗';
+
+                // Create the card element
+                const card = document.createElement('div');
+                card.className = 'doc-card';
+                
+                // Set up the click event to open the preview modal
+                card.onclick = () => openPreview(filePath, doc.standardized_file_name, fileExt);
+
+                // Add the card HTML
+                card.innerHTML = `
+                    <div class="doc-preview-thumb">${icon}</div>
+                    <div class="doc-details">
+                        <div class="doc-title" title="${doc.standardized_file_name}">${doc.standardized_file_name}</div>
+                        <div class="doc-meta">
+                            <span>${doc.category}</span>
+                            <span>${doc.date || 'Unknown Date'}</span>
+                        </div>
+                    </div>
+                `;
+                gridContainer.appendChild(card);
+            });
+        } catch (error) {
+            console.error('Error fetching documents:', error);
+        }
+    }
+
+    function openPreview(filePath, fileName, fileExt) {
+        const modal = document.getElementById('previewModal');
+        const iframe = document.getElementById('previewFrame');
+        const downloadBtn = document.getElementById('modalDownloadBtn');
+
+        // Set the download button link
+        downloadBtn.href = filePath;
+
+        // Handle the preview URL based on file type
+        let previewUrl = filePath;
+
+        // If it's a Microsoft Office file, use Google's Document Viewer
+        const officeExts = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
+        if (officeExts.includes(fileExt)) {
+            // Replace 'YOUR_PUBLIC_URL' with your actual localtunnel URL if testing Office files
+            const fullUrl = encodeURIComponent(`YOUR_PUBLIC_URL${filePath}`);
+            previewUrl = `https://docs.google.com/gview?url=${fullUrl}&embedded=true`;
+        }
+        
+        // Load the document into the iframe
+        iframe.src = previewUrl;
+        
+        // Show the modal
+        modal.style.display = 'block';
+    }
+
+    function closePreview() {
+        const modal = document.getElementById('previewModal');
+        const iframe = document.getElementById('previewFrame');
+        
+        // Hide the modal
+        modal.style.display = 'none';
+        
+        // Clear the iframe source to stop it from playing/loading in the background
+        iframe.src = '';
+    }
+
+    // 3. RUN AUTOMATICALLY ON PAGE LOAD
+    window.onload = fetchDocuments;
+</script>
+</body>
+</html>

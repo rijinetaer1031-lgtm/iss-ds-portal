@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISS-DS | Activity Log</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #eef4ff, #f8fbff); padding: 40px 20px; display: flex; justify-content: center; }
+        .log-container { width: 100%; max-width: 900px; background: white; padding: 35px; border-radius: 18px; box-shadow: 0 10px 30px rgba(0, 60, 120, 0.12); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #f1f7ff; padding-bottom: 20px; }
+        h1 { color: #123b63; font-size: 24px; }
+        p { color: #777; font-size: 14px; margin-top: 5px;}
+        .btn-secondary { padding: 10px 15px; border-radius: 9px; background: #e7f0ff; color: #1769aa; text-decoration: none; font-weight: bold; font-size: 14px; transition: 0.2s; }
+        .btn-secondary:hover { background: #d4e4fc; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eef4ff; font-size: 14px; }
+        th { background-color: #f8fbff; color: #123b63; font-weight: bold; }
+        tbody tr:hover { background-color: #f1f7ff; }
+        .tag { display: inline-block; padding: 4px 8px; border-radius: 6px; background: #e7f0ff; color: #1769aa; font-size: 12px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="log-container">
+        <div class="header">
+            <div>
+                <h1>📋 System Activity Log</h1>
+                <p>Audit trail of user actions and document modifications</p>
+            </div>
+            <a href="/dashboard" class="btn-secondary">🔙 Back to Dashboard</a>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Date & Time</th>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>Target Document</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody id="logTableBody">
+                <!-- Log data populated via JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function fetchLogs() {
+            try {
+                const response = await fetch('/api/activity');
+                if (!response.ok) {
+                    document.getElementById('logTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Access Denied or Server Error.</td></tr>';
+                    return;
+                }
+                const logs = await response.json();
+                const tableBody = document.getElementById('logTableBody');
+                
+                if (logs.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#777;">No activity recorded yet.</td></tr>';
+                    return;
+                }
+
+                logs.forEach(log => {
+                    const row = `<tr>
+                        <td style="color: #666;">${new Date(log.action_date).toLocaleString()}</td>
+                        <td style="font-weight: bold; color: #333;">@${log.username}</td>
+                        <td><span class="tag">${log.action_type}</span></td>
+                        <td style="color: #666;">${log.document_id ? 'Doc ID: ' + log.document_id : 'N/A'}</td>
+                        <td style="color: #666;">${log.result || ''}</td>
+                    </tr>`;
+                    tableBody.innerHTML += row;
+                });
+            } catch (error) {
+                console.error('Error fetching logs:', error);
+            }
+        }
+
+        window.onload = fetchLogs;
+    </script>
+</body>
+</html>
