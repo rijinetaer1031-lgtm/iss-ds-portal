@@ -1,142 +1,707 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ISS-DS | Admin Panel</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/style.css" />
+
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: Arial, sans-serif; min-height: 100vh; background: #f0f4f8; display: flex; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: "Inter", sans-serif;
+      }
 
+      body {
+        background: #f5f3fa;
+        display: flex;
+        min-height: 100vh;
+        color: #17142b;
+      }
+
+      /* Unified Sidebar */
+      .sidebar {
+        width: 260px;
+        background: linear-gradient(180deg, #17142b 0%, #25203d 100%);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        height: 100vh;
+        border-top-right-radius: 20px;
+        border-bottom-right-radius: 20px;
+        padding: 20px 0;
+        z-index: 10;
+        transition: transform 0.3s ease;
+      }
+
+      .sidebar.closed {
+        transform: translateX(-100%);
+      }
+
+      .logo-container {
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 30px 20px 0 20px;
+        position: relative;
+      }
+
+      .sidebar-logo {
+        width: 130px;
+        height: auto;
+        background-color: transparent;
+        padding: 0;
+        filter: drop-shadow(0px 0px 12px rgba(124, 92, 255, 0.45));
+        margin-bottom: 10px;
+      }
+
+      .close-btn {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+        z-index: 100;
+        color: white;
+      }
+
+      .close-btn:hover {
+        transform: scale(1.05);
+      }
+
+      .nav-menu {
+        display: flex;
+        flex-direction: column;
+        padding: 0 15px;
+        flex-grow: 1;
+      }
+
+      .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 12px 20px;
+        color: #d9d5ea;
+        text-decoration: none;
+        border-radius: 10px;
+        margin-bottom: 5px;
+        font-size: 14px;
+        transition: 0.3s;
+      }
+
+      .nav-link:hover,
+      .nav-link.active {
+        background: linear-gradient(90deg, #7c5cff, #6a4de0);
+        color: white;
+        font-weight: 600;
+      }
+
+      .nav-link i {
+        font-size: 18px;
+        width: 20px;
+        text-align: center;
+      }
+
+      .sidebar-profile {
+        padding: 20px;
+        margin: 0 15px;
+        background: rgba(124, 92, 255, 0.12);
+        border: 1px solid rgba(124, 92, 255, 0.25);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .profile-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+      }
+
+      .profile-info i {
+        font-size: 24px;
+        color: #34d399;
+      }
+
+      .logout-btn {
+        color: #f08a9b;
+        text-decoration: none;
+        font-size: 14px;
+      }
+
+      .logout-btn:hover {
+        color: #d6455d;
+      }
+
+      .open-btn {
+        font-size: 24px;
+        color: #7c5cff;
+        cursor: pointer;
+        display: none;
+        margin-bottom: 20px;
+        transition: 0.2s;
+      }
+
+      .open-btn:hover {
+        color: #5b43c7;
+      }
+
+      .main-content.expanded .open-btn {
+        display: inline-block;
+      }
+
+      /* Main Content */
+      .main-content {
+        margin-left: 260px;
+        flex-grow: 1;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+        width: calc(100% - 260px);
+        transition:
+          margin-left 0.3s ease,
+          width 0.3s ease;
+      }
+
+      .main-content.expanded {
+        margin-left: 0;
+        padding-left: 40px;
+        width: 100%;
+      }
+
+      /* Admin Cards & Table */
+      .card {
+        background: #ffffff;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(23, 20, 43, 0.06);
+        border: 1px solid #e7e2f2;
+      }
+
+      .header {
+        margin-bottom: 20px;
+        border-bottom: 1px solid #e7e2f2;
+        padding-bottom: 15px;
+      }
+
+      h1 {
+        color: #17142b;
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+
+      h2 {
+        color: #17142b;
+        font-size: 18px;
+        margin-bottom: 15px;
+        font-weight: 600;
+      }
+
+      p {
+        color: #6b6678;
+        font-size: 14px;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+      }
+
+      label {
+        display: block;
+        color: #17142b;
+        font-weight: 600;
+        margin-bottom: 6px;
+        font-size: 13px;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 11px;
+        border: 1px solid #e2ddeb;
+        border-radius: 8px;
+        font-size: 14px;
+        outline: none;
+        background: #f5f3fa;
+        color: #17142b;
+      }
+
+      input:focus,
+      select:focus {
+        border-color: #7c5cff;
+        background: white;
+      }
+
+      button[type="submit"] {
+        grid-column: span 2;
+        padding: 13px;
+        border: none;
+        border-radius: 8px;
+        background: #7c5cff;
+        color: white;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.2s;
+        margin-top: 5px;
+      }
+
+      button[type="submit"]:hover {
+        background: #5b43c7;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 14px 20px;
+        text-align: left;
+        border-bottom: 1px solid #e7e2f2;
+        font-size: 14px;
+      }
+
+      th {
+        background-color: #fcfbfe;
+        color: #17142b;
+        font-weight: bold;
+      }
+
+      tbody tr:hover {
+        background-color: #fcfbfe;
+      }
+
+      .tag {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 6px;
+        background: #eee9ff;
+        color: #6a4de0;
+        font-size: 12px;
+        font-weight: bold;
+      }
+
+      .action-btn {
+        padding: 6px 10px;
+        border: 1px solid #e2ddeb;
+        border-radius: 6px;
+        background: white;
+        cursor: pointer;
+        font-size: 12px;
+        margin-right: 4px;
+        transition: 0.2s;
+        color: #17142b;
+      }
+
+      .action-btn:hover {
+        background: #f0eef5;
+      }
+
+      .action-select {
+        padding: 6px;
+        border: 1px solid #e2ddeb;
+        border-radius: 6px;
+        font-size: 12px;
+        margin-right: 4px;
+        background: #f5f3fa;
+      }
+
+      .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      @media (max-width: 768px) {
         .sidebar {
-            width: 260px; background: #0f2744; color: white; display: flex; flex-direction: column; justify-content: space-between; padding: 25px 20px; position: fixed; height: 100vh;
+          transform: translateX(-100%);
         }
-        .brand { font-size: 20px; font-weight: bold; margin-bottom: 30px; display: flex; align-items: center; gap: 10px; color: #61b5ff; }
-        .nav-links { display: flex; flex-direction: column; gap: 8px; flex-grow: 1; }
-        .nav-link { padding: 12px 15px; border-radius: 8px; color: #b0c4de; text-decoration: none; font-size: 14px; font-weight: 500; transition: 0.2s; }
-        .nav-link:hover, .nav-link.active { background: #2878c8; color: white; }
-        .sidebar-footer { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; font-size: 13px; color: #9bb2cd; }
-        .sidebar-footer a { color: #ff8080; text-decoration: none; display: block; margin-top: 8px; font-weight: bold; }
 
-        .main-content { margin-left: 260px; flex-grow: 1; padding: 40px; display: flex; flex-direction: column; gap: 25px; }
-        .card { background: white; padding: 30px; border-radius: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; }
-        
-        .header { margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; }
-        h1 { color: #0f2744; font-size: 22px; margin-bottom: 4px; }
-        h2 { color: #0f2744; font-size: 18px; margin-bottom: 15px; }
-        p { color: #666; font-size: 14px; }
+        .sidebar:not(.closed) {
+          transform: translateX(0);
+        }
 
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        label { display: block; color: #334155; font-weight: bold; margin-bottom: 6px; font-size: 13px; }
-        input, select { width: 100%; padding: 11px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #f8fafc; }
-        input:focus, select:focus { border-color: #2878c8; background: white; }
-        
-        button[type="submit"] { grid-column: span 2; padding: 13px; border: none; border-radius: 8px; background: #2878c8; color: white; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 5px; }
-        button[type="submit"]:hover { background: #1769aa; }
+        .main-content {
+          margin-left: 0 !important;
+          width: 100% !important;
+          padding: 20px 15px !important;
+        }
 
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 14px 20px; text-align: left; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
-        th { background-color: #f8fafc; color: #475569; font-weight: bold; }
-        tbody tr:hover { background-color: #f8fafc; }
-        .tag { display: inline-block; padding: 4px 10px; border-radius: 6px; background: #e2e8f0; color: #334155; font-size: 12px; font-weight: bold; }
+        .open-btn {
+          display: inline-block !important;
+        }
+
+        .form-grid {
+          grid-template-columns: 1fr !important;
+        }
+
+        button[type="submit"] {
+          grid-column: span 1 !important;
+        }
+      }
     </style>
-</head>
-<body>
+  </head>
 
+  <body>
+    <!-- Unified Sidebar -->
     <div class="sidebar">
-        <div>
-            <div class="brand">📁 ISS-DS Portal</div>
-            <div class="nav-links">
-                <a href="/dashboard" class="nav-link">📊 Dashboard</a>
-                <a href="/upload" class="nav-link">➕ Upload Document</a>
-                <a href="/activity-log" class="nav-link">📋 Activity Log</a>
-                <a href="/admin" class="nav-link active">⚙️ Admin Panel</a>
+      <div class="logo-container">
+        <i
+          class="fa-solid fa-bars close-btn"
+          id="closeSidebar"
+          title="Collapse Menu"
+        ></i>
+        <img src="/nobglogo.png" alt="CSUISS Logo" class="sidebar-logo" />
+      </div>
+
+      <div class="nav-menu">
+        <a href="/dashboard" class="nav-link">
+          <i class="fa-solid fa-house"></i>
+          Dashboard
+        </a>
+
+        <a href="/upload" class="nav-link">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          Upload Document
+        </a>
+
+        <a href="/documents" class="nav-link">
+          <i class="fa-regular fa-file-lines"></i>
+          My Documents
+        </a>
+
+        <a href="/activity-log" class="nav-link">
+          <i class="fa-solid fa-chart-line"></i>
+          Activity Log
+        </a>
+
+        <a href="/admin" class="nav-link active">
+          <i class="fa-solid fa-gear"></i>
+          Admin Panel
+        </a>
+      </div>
+
+      <div class="sidebar-profile">
+        <div class="profile-info">
+          <i class="fa-solid fa-circle-user"></i>
+          <div>
+            <div style="font-size: 11px; color: #a7f3d0">ISS-DS Portal</div>
+            <div style="font-weight: bold" id="userDisplay">
+              User
+              <i
+                class="fa-solid fa-chevron-down"
+                style="font-size: 10px; margin-left: 5px"
+              ></i>
             </div>
+          </div>
         </div>
-        <div class="sidebar-footer">
-            <a href="/logout">🚪 Logout</a>
-        </div>
+
+        <a href="/logout" class="logout-btn" title="Logout">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </a>
+      </div>
     </div>
 
+    <!-- Main Content -->
     <div class="main-content">
-        <div class="card">
-            <div class="header">
-                <h1>Admin Panel</h1>
-                <p>Manage user accounts and role permissions</p>
+      <i
+        class="fa-solid fa-bars open-btn"
+        id="openSidebar"
+        title="Open Menu"
+      ></i>
+
+      <div class="card">
+        <div class="header">
+          <h1>Admin Panel</h1>
+          <p>Manage user accounts and role permissions</p>
+        </div>
+
+        <h2>Create New User</h2>
+
+        <form action="/api/users" method="POST">
+          <div class="form-grid">
+            <div>
+              <label>Full Name</label>
+              <input
+                type="text"
+                name="full_name"
+                required
+                placeholder="e.g. john doe"
+              />
             </div>
 
-            <h2>Create New User</h2>
-            <form action="/api/users" method="POST">
-                <div class="form-grid">
-                    <div>
-                        <label>Full Name</label>
-                        <input type="text" name="full_name" required placeholder="e.g. john doe">
-                    </div>
-                    <div>
-                        <label>Username</label>
-                        <input type="text" name="username" required placeholder="Unique username">
-                    </div>
-                    <div>
-                        <label>Password</label>
-                        <input type="password" name="password" required placeholder="Temporary password">
-                    </div>
-                    <div>
-                        <label>Access Level</label>
-                        <select name="access_level" required>
-                            <option value="Officer">Officer</option>
-                            <option value="Treasurer">Treasurer</option>
-                            <option value="President">President</option>
-                            <option value="Administrator">Administrator</option>
-                        </select>
-                    </div>
-                    <button type="submit">Create User Account</button>
-                </div>
-            </form>
-        </div>
+            <div>
+              <label>Username</label>
+              <input
+                type="text"
+                name="username"
+                required
+                placeholder="Unique username"
+              />
+            </div>
 
-        <div class="card">
-            <h2>Existing User Accounts</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Full Name</th>
-                        <th>Username</th>
-                        <th>Access Level</th>
-                        <th>Status</th>
-                        <th>Date Created</th>
-                    </tr>
-                </thead>
-                <tbody id="userTableBody">
-                </tbody>
-            </table>
+            <div>
+              <label>Password</label>
+              <input
+                type="password"
+                name="password"
+                required
+                placeholder="Temporary password"
+              />
+            </div>
+
+            <div>
+              <label>Access Level</label>
+              <select name="access_level" required>
+                <option value="Officer">Officer</option>
+                <option value="Secretary">Secretary</option>
+                <option value="Treasurer">Treasurer</option>
+                <option value="President">President</option>
+                <option value="Administrator">Administrator</option>
+              </select>
+            </div>
+
+            <button type="submit">Create User Account</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Existing User Accounts</h2>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Full Name</th>
+                <th>Username</th>
+                <th>Access Level</th>
+                <th>Status</th>
+                <th>Date Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody id="userTableBody"></tbody>
+          </table>
         </div>
+      </div>
     </div>
 
     <script>
-        async function fetchUsers() {
-            try {
-                const response = await fetch('/api/users');
-                if (!response.ok) return;
-                const users = await response.json();
-                const tableBody = document.getElementById('userTableBody');
-                tableBody.innerHTML = '';
-                
-                users.forEach(user => {
-                    const date = new Date(user.date_created).toLocaleDateString();
-                    const row = `<tr>
-                        <td style="font-weight: bold; color: #0f2744;">${user.full_name}</td>
-                        <td style="color: #64748b;">@${user.username}</td>
-                        <td><span class="tag">${user.access_level}</span></td>
-                        <td style="color: #64748b;">${user.status}</td>
-                        <td style="color: #64748b;">${date}</td>
+      async function fetchUsers() {
+        try {
+          const response = await fetch("/api/users");
+          if (!response.ok) return;
+
+          const users = await response.json();
+          const tableBody = document.getElementById("userTableBody");
+          tableBody.innerHTML = "";
+
+          users.forEach((user) => {
+            const date = new Date(user.date_created).toLocaleDateString();
+
+            const row = `<tr>
+                        <td style="font-weight: bold; color: #17142b;">
+                            ${user.full_name}
+                        </td>
+                        <td style="color: #6b6678;">
+                            @${user.username}
+                        </td>
+                        <td>
+                            <span class="tag">
+                                ${user.access_level}
+                            </span>
+                        </td>
+                        <td style="color: #6b6678;">
+                            ${user.status || "Active"}
+                        </td>
+                        <td style="color: #6b6678;">
+                            ${date}
+                        </td>
+                        <td>
+                            <select
+                                class="action-select"
+                                id="roleSelect_${user.id}">
+                                <option value="Officer"
+                                    ${user.access_level === "Officer" ? "selected" : ""}>
+                                    Officer
+                                </option>
+                                <option value="Secretary"
+                                    ${user.access_level === "Secretary" ? "selected" : ""}>
+                                    Secretary
+                                </option>
+                                <option value="Treasurer"
+                                    ${user.access_level === "Treasurer" ? "selected" : ""}>
+                                    Treasurer
+                                </option>
+                                <option value="President"
+                                    ${user.access_level === "President" ? "selected" : ""}>
+                                    President
+                                </option>
+                                <option value="Administrator"
+                                    ${user.access_level === "Administrator" ? "selected" : ""}>
+                                    Administrator
+                                </option>
+                            </select>
+                            <button class="action-btn"
+                                onclick="changeUserRole(${user.id})">
+                                Save
+                            </button>
+                            <button class="action-btn"
+                                onclick="resetPassword(${user.id})">
+                                Reset Pass
+                            </button>
+                            <button class="action-btn"
+                                style="color: #d6455d;"
+                                onclick="deactivateUser(${user.id})">
+                                Deactivate
+                            </button>
+                        </td>
                     </tr>`;
-                    tableBody.innerHTML += row;
-                });
-            } catch (error) {
-                console.error('Error fetching users:', error);
-            }
+
+            tableBody.innerHTML += row;
+          });
+        } catch (error) {
+          console.error("Error fetching users:", error);
         }
-        window.onload = fetchUsers;
+      }
+
+      window.onload = fetchUsers;
+
+      async function changeUserRole(userId) {
+        const newRole = document.getElementById(`roleSelect_${userId}`).value;
+
+        const confirmation = await Swal.fire({
+          title: "Change Access Level?",
+          text: `Promote/demote this user to ${newRole}?`,
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonColor: "#7c5cff",
+        });
+
+        if (confirmation.isConfirmed) {
+          const response = await fetch(`/api/users/${userId}/role`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              newRole,
+            }),
+          });
+
+          if ((await response.json()).success) {
+            Swal.fire("Saved!", "Access level updated.", "success");
+            fetchUsers();
+          }
+        }
+      }
+
+      async function deactivateUser(userId) {
+        const confirmation = await Swal.fire({
+          title: "Deactivate Account?",
+          text: "They will instantly lose access.",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d6455d",
+        });
+
+        if (confirmation.isConfirmed) {
+          const response = await fetch(`/api/users/${userId}/deactivate`, {
+            method: "PUT",
+          });
+
+          if ((await response.json()).success) {
+            Swal.fire("Deactivated!", "Account is now inactive.", "success");
+            fetchUsers();
+          }
+        }
+      }
+
+      async function resetPassword(userId) {
+        const { value: newPassword } = await Swal.fire({
+          title: "Reset Password",
+          input: "text",
+          inputPlaceholder: "TempPass123",
+          showCancelButton: true,
+          confirmButtonColor: "#7c5cff",
+          inputValidator: (value) => {
+            if (!value) return "You need to enter a password!";
+          },
+        });
+
+        if (newPassword) {
+          const response = await fetch(`/api/users/${userId}/reset-password`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              newPassword,
+            }),
+          });
+
+          if ((await response.json()).success) {
+            Swal.fire("Password Reset!", "New password active.", "success");
+          }
+        }
+      }
+
+      // Sidebar Toggle
+      const sidebar = document.querySelector(".sidebar");
+      const mainContent = document.querySelector(".main-content");
+      document.getElementById("closeSidebar").addEventListener("click", () => {
+        sidebar.classList.add("closed");
+        mainContent.classList.add("expanded");
+      });
+      document.getElementById("openSidebar").addEventListener("click", () => {
+        sidebar.classList.remove("closed");
+        mainContent.classList.remove("expanded");
+      });
     </script>
-</body>
+
+    <script>
+      // Quietly fetch from the existing documents API just to grab the user role
+      fetch("/api/documents")
+        .then((response) => response.json())
+        .then((data) => {
+          const userDisplayEl = document.getElementById("userDisplay");
+          if (userDisplayEl && data.userRole) {
+            userDisplayEl.innerHTML = `@${data.userRole}
+                        <i class="fa-solid fa-chevron-down"
+                            style="font-size: 10px; margin-left: 5px;"></i>`;
+          }
+        })
+        .catch((error) => console.error("Error fetching user role:", error));
+    </script>
+  </body>
 </html>

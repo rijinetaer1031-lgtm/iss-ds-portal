@@ -1,78 +1,141 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ISS-DS | Login</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/style.css" />
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: Arial, sans-serif;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #eef4ff, #f8fbff);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .login-container {
-            width: 100%;
-            max-width: 400px;
-            background: white;
-            padding: 40px;
-            border-radius: 18px;
-            box-shadow: 0 10px 30px rgba(0, 60, 120, 0.12);
-            text-align: center;
-        }
-        .icon {
-            width: 65px; height: 65px; margin: 0 auto 15px;
-            background: #e7f0ff; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center; font-size: 30px;
-        }
-        h1 { color: #123b63; font-size: 24px; margin-bottom: 5px; }
-        p { color: #777; font-size: 14px; margin-bottom: 25px; }
-        .form-group { margin-bottom: 20px; text-align: left; }
-        label { display: block; color: #333; font-weight: bold; margin-bottom: 8px; font-size: 14px; }
-        input {
-            width: 100%; padding: 13px; border: 1px solid #d5dce5;
-            border-radius: 9px; font-size: 14px; outline: none; background: #fafcff;
-        }
-        input:focus { border-color: #2878c8; box-shadow: 0 0 0 3px rgba(40, 120, 200, 0.1); background: white; }
-        button {
-            width: 100%; padding: 14px; border: none; border-radius: 9px;
-            background: linear-gradient(135deg, #1769aa, #2878c8);
-            color: white; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s;
-        }
-        button:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(23, 105, 170, 0.25); }
-        .error { color: #d9534f; font-size: 13px; margin-bottom: 15px; display: none; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: "Inter", sans-serif;
+      }
+      body {
+        min-height: 100vh;
+        background: #f5f3fa;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #17142b;
+      }
+      .login-container {
+        width: 100%;
+        max-width: 400px;
+        background: #ffffff;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(23, 20, 43, 0.1);
+        text-align: center;
+        border: 1px solid #e7e2f2;
+      }
+      .icon {
+        width: 75px;
+        height: 75px;
+        margin: 0 auto 15px;
+        background: #eee9ff;
+        border-radius: 50%;
+        color: #7c5cff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 30px;
+      }
+      h1 {
+        color: #17142b;
+        font-size: 24px;
+        margin-bottom: 5px;
+        font-weight: 700;
+      }
+      p {
+        color: #6b6678;
+        font-size: 14px;
+        margin-bottom: 25px;
+      }
+      .form-group {
+        margin-bottom: 20px;
+        text-align: left;
+      }
+      label {
+        display: block;
+        color: #17142b;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 13px;
+      }
+      input {
+        width: 100%;
+        padding: 13px;
+        border: 1px solid #e2ddeb;
+        border-radius: 9px;
+        font-size: 14px;
+        outline: none;
+        background: #f5f3fa;
+        color: #17142b;
+        transition: 0.2s;
+      }
+      input:focus {
+        border-color: #7c5cff;
+        box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.15);
+        background: white;
+      }
+      button {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 9px;
+        background: linear-gradient(180deg, #7c5cff 0%, #5b43c7 100%);
+        color: white;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(124, 92, 255, 0.25);
+      }
+      .error {
+        color: #d6455d;
+        font-size: 13px;
+        margin-bottom: 15px;
+        display: none;
+        font-weight: 500;
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <div class="login-container">
-        <div class="icon">🔐</div>
-        <h1>ISS-DS Login</h1>
-        <p>Access the Document Repository</p>
+      <div class="icon"><i class="fa-solid fa-shield-halved"></i></div>
+      <h1>ISS-DS Login</h1>
+      <p>Access the Document Repository</p>
+      <div id="errorMessage" class="error">Invalid username or password.</div>
 
-        <div id="errorMessage" class="error">Invalid username or password.</div>
-
-        <form action="/api/login" method="POST">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit">Sign In</button>
-        </form>
+      <form action="/api/login" method="POST">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" required />
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required />
+        </div>
+        <button type="submit">Sign In</button>
+      </form>
     </div>
-
     <script>
-        // Simple script to show error if the URL contains ?error=1
-        if (window.location.search.includes('error=1')) {
-            document.getElementById('errorMessage').style.display = 'block';
-        }
+      if (window.location.search.includes("error=1")) {
+        document.getElementById("errorMessage").style.display = "block";
+      }
     </script>
-</body>
+  </body>
 </html>

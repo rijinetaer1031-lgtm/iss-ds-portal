@@ -1,84 +1,472 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ISS-DS | Activity Log</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #eef4ff, #f8fbff); padding: 40px 20px; display: flex; justify-content: center; }
-        .log-container { width: 100%; max-width: 900px; background: white; padding: 35px; border-radius: 18px; box-shadow: 0 10px 30px rgba(0, 60, 120, 0.12); }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #f1f7ff; padding-bottom: 20px; }
-        h1 { color: #123b63; font-size: 24px; }
-        p { color: #777; font-size: 14px; margin-top: 5px;}
-        .btn-secondary { padding: 10px 15px; border-radius: 9px; background: #e7f0ff; color: #1769aa; text-decoration: none; font-weight: bold; font-size: 14px; transition: 0.2s; }
-        .btn-secondary:hover { background: #d4e4fc; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eef4ff; font-size: 14px; }
-        th { background-color: #f8fbff; color: #123b63; font-weight: bold; }
-        tbody tr:hover { background-color: #f1f7ff; }
-        .tag { display: inline-block; padding: 4px 8px; border-radius: 6px; background: #e7f0ff; color: #1769aa; font-size: 12px; font-weight: bold; }
-    </style>
-</head>
-<body>
 
-    <div class="log-container">
-        <div class="header">
-            <div>
-                <h1>📋 System Activity Log</h1>
-                <p>Audit trail of user actions and document modifications</p>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/style.css" />
+
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: "Inter", sans-serif;
+      }
+
+      body {
+        background: #f5f3fa;
+        display: flex;
+        min-height: 100vh;
+        color: #17142b;
+      }
+
+      .sidebar {
+        width: 260px;
+        background: linear-gradient(180deg, #17142b 0%, #25203d 100%);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        height: 100vh;
+        border-top-right-radius: 20px;
+        border-bottom-right-radius: 20px;
+        padding: 20px 0;
+        z-index: 10;
+        transition: transform 0.3s ease;
+      }
+
+      .sidebar.closed {
+        transform: translateX(-100%);
+      }
+
+      .logo-container {
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 30px 20px 0 20px;
+        position: relative;
+      }
+
+      .sidebar-logo {
+        width: 130px;
+        height: auto;
+        background-color: transparent;
+        padding: 0;
+        filter: drop-shadow(0px 0px 12px rgba(124, 92, 255, 0.45));
+        margin-bottom: 10px;
+      }
+
+      .nav-menu {
+        display: flex;
+        flex-direction: column;
+        padding: 0 15px;
+        flex-grow: 1;
+      }
+
+      .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 12px 20px;
+        color: #d9d5ea;
+        text-decoration: none;
+        border-radius: 10px;
+        margin-bottom: 5px;
+        font-size: 14px;
+        transition: 0.3s;
+      }
+
+      .nav-link:hover,
+      .nav-link.active {
+        background: linear-gradient(90deg, #7c5cff, #6a4de0);
+        color: white;
+        font-weight: 600;
+      }
+
+      .nav-link i {
+        font-size: 18px;
+        width: 20px;
+        text-align: center;
+      }
+
+      .sidebar-profile {
+        padding: 20px;
+        margin: 0 15px;
+        background: rgba(124, 92, 255, 0.12);
+        border: 1px solid rgba(124, 92, 255, 0.25);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .profile-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+      }
+
+      .profile-info i {
+        font-size: 24px;
+        color: #34d399;
+      }
+
+      .logout-btn {
+        color: #f08a9b;
+        text-decoration: none;
+        font-size: 14px;
+      }
+
+      .logout-btn:hover {
+        color: #d6455d;
+      }
+
+      .close-btn {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+        z-index: 100;
+        color: white;
+      }
+
+      .close-btn:hover {
+        transform: scale(1.05);
+      }
+
+      .open-btn {
+        font-size: 24px;
+        color: #7c5cff;
+        cursor: pointer;
+        display: none;
+        margin-bottom: 20px;
+        transition: 0.2s;
+      }
+
+      .open-btn:hover {
+        color: #5b43c7;
+      }
+
+      .main-content.expanded .open-btn {
+        display: inline-block;
+      }
+
+      .main-content {
+        margin-left: 260px;
+        flex-grow: 1;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        width: calc(100% - 260px);
+        transition:
+          margin-left 0.3s ease,
+          width 0.3s ease;
+      }
+
+      .main-content.expanded {
+        margin-left: 0;
+        padding-left: 40px;
+        width: 100%;
+      }
+
+      .log-container {
+        width: 100%;
+        background: #ffffff;
+        padding: 35px;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(23, 20, 43, 0.06);
+        border: 1px solid #e7e2f2;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #e7e2f2;
+        padding-bottom: 20px;
+      }
+
+      h1 {
+        color: #17142b;
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      p {
+        color: #6b6678;
+        font-size: 14px;
+        margin-top: 5px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+
+      th,
+      td {
+        padding: 15px 12px;
+        text-align: left;
+        border-bottom: 1px solid #e7e2f2;
+        font-size: 14px;
+      }
+
+      th {
+        background-color: #fcfbfe;
+        color: #17142b;
+        font-weight: bold;
+      }
+
+      tbody tr:hover {
+        background-color: #fcfbfe;
+      }
+
+      .tag {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 6px;
+        background: #eee9ff;
+        color: #6a4de0;
+        font-size: 12px;
+        font-weight: bold;
+      }
+
+      .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      @media (max-width: 768px) {
+        .sidebar {
+          transform: translateX(-100%);
+        }
+
+        .sidebar:not(.closed) {
+          transform: translateX(0);
+        }
+
+        .main-content {
+          margin-left: 0 !important;
+          width: 100% !important;
+          padding: 20px 15px !important;
+        }
+
+        .open-btn {
+          display: inline-block !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="sidebar">
+      <div class="logo-container">
+        <i
+          class="fa-solid fa-bars close-btn"
+          id="closeSidebar"
+          title="Collapse Menu"
+        ></i>
+
+        <img src="/nobglogo.png" alt="CSUISS Logo" class="sidebar-logo" />
+      </div>
+
+      <div class="nav-menu">
+        <a href="/dashboard" class="nav-link">
+          <i class="fa-solid fa-house"></i> Dashboard
+        </a>
+
+        <a href="/upload" class="nav-link">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Upload Document
+        </a>
+
+        <a href="/documents" class="nav-link">
+          <i class="fa-regular fa-file-lines"></i> My Documents
+        </a>
+
+        <a href="/activity-log" class="nav-link active">
+          <i class="fa-solid fa-chart-line"></i> Activity Log
+        </a>
+
+        <a href="/admin" class="nav-link">
+          <i class="fa-solid fa-gear"></i> Admin Panel
+        </a>
+      </div>
+
+      <div class="sidebar-profile">
+        <div class="profile-info">
+          <i class="fa-solid fa-circle-user"></i>
+
+          <div>
+            <div style="font-size: 11px; color: #a7f3d0">ISS-DS Portal</div>
+
+            <div style="font-weight: bold" id="userDisplay">
+              User
+              <i
+                class="fa-solid fa-chevron-down"
+                style="font-size: 10px; margin-left: 5px"
+              ></i>
             </div>
-            <a href="/dashboard" class="btn-secondary">🔙 Back to Dashboard</a>
+          </div>
         </div>
 
-        <table>
+        <a href="/logout" class="logout-btn" title="Logout">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </a>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <i
+        class="fa-solid fa-bars open-btn"
+        id="openSidebar"
+        title="Open Menu"
+      ></i>
+
+      <div class="log-container">
+        <div class="header">
+          <div>
+            <h1>
+              <i
+                class="fa-solid fa-clipboard-list"
+                style="color: #7c5cff; margin-right: 10px"
+              ></i>
+
+              System Activity Log
+            </h1>
+
+            <p>Audit trail of user actions and document modifications</p>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table>
             <thead>
-                <tr>
-                    <th>Date & Time</th>
-                    <th>User</th>
-                    <th>Action</th>
-                    <th>Target Document</th>
-                    <th>Result</th>
-                </tr>
+              <tr>
+                <th>Date & Time</th>
+                <th>User</th>
+                <th>Action</th>
+                <th>Target Document</th>
+                <th>Result</th>
+              </tr>
             </thead>
-            <tbody id="logTableBody">
-                <!-- Log data populated via JS -->
-            </tbody>
-        </table>
+
+            <tbody id="logTableBody"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <script>
-        async function fetchLogs() {
-            try {
-                const response = await fetch('/api/activity');
-                if (!response.ok) {
-                    document.getElementById('logTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Access Denied or Server Error.</td></tr>';
-                    return;
-                }
-                const logs = await response.json();
-                const tableBody = document.getElementById('logTableBody');
-                
-                if (logs.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#777;">No activity recorded yet.</td></tr>';
-                    return;
-                }
+      async function fetchLogs() {
+        try {
+          const response = await fetch("/api/activity");
 
-                logs.forEach(log => {
-                    const row = `<tr>
-                        <td style="color: #666;">${new Date(log.action_date).toLocaleString()}</td>
-                        <td style="font-weight: bold; color: #333;">@${log.username}</td>
-                        <td><span class="tag">${log.action_type}</span></td>
-                        <td style="color: #666;">${log.document_id ? 'Doc ID: ' + log.document_id : 'N/A'}</td>
-                        <td style="color: #666;">${log.result || ''}</td>
+          if (!response.ok) {
+            document.getElementById("logTableBody").innerHTML =
+              '<tr><td colspan="5" style="text-align:center; color:#d6455d;">Access Denied.</td></tr>';
+
+            return;
+          }
+
+          const logs = await response.json();
+
+          const tableBody = document.getElementById("logTableBody");
+
+          if (logs.length === 0) {
+            tableBody.innerHTML =
+              '<tr><td colspan="5" style="text-align:center; color:#6b6678;">No activity recorded yet.</td></tr>';
+
+            return;
+          }
+
+          logs.forEach((log) => {
+            const row = `<tr>
+
+                        <td style="color: #6b6678;">
+                            ${new Date(log.action_date).toLocaleString()}
+                        </td>
+
+                        <td style="font-weight: bold; color: #17142b;">
+                            @${log.username}
+                        </td>
+
+                        <td>
+                            <span class="tag">
+                                ${log.action_type}
+                            </span>
+                        </td>
+
+                        <td style="color: #6b6678;">
+                            ${log.document_id ? "Doc ID: " + log.document_id : "N/A"}
+                        </td>
+
+                        <td style="color: #6b6678;">
+                            ${log.result || ""}
+                        </td>
+
                     </tr>`;
-                    tableBody.innerHTML += row;
-                });
-            } catch (error) {
-                console.error('Error fetching logs:', error);
-            }
-        }
 
-        window.onload = fetchLogs;
+            tableBody.innerHTML += row;
+          });
+        } catch (error) {
+          console.error("Error fetching logs:", error);
+        }
+      }
+
+      window.onload = fetchLogs;
+
+      const sidebar = document.querySelector(".sidebar");
+
+      const mainContent = document.querySelector(".main-content");
+
+      document.getElementById("closeSidebar").addEventListener("click", () => {
+        sidebar.classList.add("closed");
+        mainContent.classList.add("expanded");
+      });
+
+      document.getElementById("openSidebar").addEventListener("click", () => {
+        sidebar.classList.remove("closed");
+        mainContent.classList.remove("expanded");
+      });
     </script>
-</body>
+
+    <script>
+      // Quietly fetch from the existing documents API just to grab the user role
+      fetch("/api/documents")
+        .then((response) => response.json())
+        .then((data) => {
+          const userDisplayEl = document.getElementById("userDisplay");
+
+          if (userDisplayEl && data.userRole) {
+            userDisplayEl.innerHTML = `@${data.userRole}
+                        <i class="fa-solid fa-chevron-down"
+                            style="font-size: 10px; margin-left: 5px;"></i>`;
+          }
+        })
+        .catch((error) => console.error("Error fetching user role:", error));
+    </script>
+  </body>
 </html>
