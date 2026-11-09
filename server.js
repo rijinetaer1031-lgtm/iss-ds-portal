@@ -36,6 +36,11 @@ function requireAuth(req, res, next) {
         res.redirect('/login');
     }
 }
+// Add this route to serve the Recycle Bin page
+app.get('/recycle-bin', (req, res) => {
+    // Make sure the path matches where your HTML files are stored
+    res.sendFile(path.join(__dirname, 'public', 'recycle-bin.html')); 
+});
 
 app.get('/documents', requireAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'documents.html'));
@@ -90,7 +95,7 @@ app.get('/api/documents', requireAuth, async (req, res) => {
                dv.version_number, dv.standardized_file_name
         FROM Document d
         JOIN DocumentVersion dv ON d.id = dv.document_id
-        WHERE dv.version_number = (
+        WHERE d.is_deleted = FALSE AND dv.version_number = (
             SELECT MAX(version_number) FROM DocumentVersion WHERE document_id = d.id
         )
     `;
@@ -121,7 +126,7 @@ app.get('/api/documents', requireAuth, async (req, res) => {
         client.release();
         
         res.json({ userRole: req.session.role, documents: result.rows });
-    } catch (error) {
+    }  catch (error) {
         console.error('Search Error:', error);
         res.status(500).send('Server error during search.');
     }
@@ -176,7 +181,7 @@ app.post('/api/upload', requireAuth, upload.single('file'), async (req, res) => 
         await client.query(`INSERT INTO ActivityLogEntry (user_id, action_type, document_id, result) VALUES ($1, $2, $3, $4)`, [userId, 'Upload Document', documentId, `Version ${newVersion} uploaded`]);
 
         await client.query('COMMIT');
-        res.status(200).send(`Successfully uploaded version ${newVersion}: ${standardizedFileName}. <br><br><a href="/dashboard">Return to Dashboard</a>`);
+       res.redirect('/upload?uploaded=success');
 
     } catch (error) {
         await client.query('ROLLBACK');
@@ -363,6 +368,76 @@ app.get('/api/current-user', (req, res) => {
         res.json({ role: req.session.role });
     } else {
         res.json({ role: 'User' }); // Fallback
+    }
+});
+
+// Soft Delete (Move to Recycle Bin)
+app.post('/api/documents/soft-delete/:id', requireAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.session.userId;
+
+        const client = await pool.connect();
+        
+        // Update document to soft deleted
+        await client.query('UPDATE document SET is_deleted = TRUE WHERE id = $1', [id]);
+        
+        // Record in Activity Log
+        await client.query(
+            `INSERT INTO ActivityLogEntry (user_id, action_type, document_id, result) VALUES ($1, $2, $3, $4)`,
+            [userId, 'Move to Recycle Bin', id, 'Document moved to recycle bin']
+        );
+
+        client.release();
+        res.status(200).json({ success: true, message: 'Moved to recycle bin' });
+    } catch (error) {
+        console.error("Soft delete error:", error);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+});
+
+// Get Deleted Documents for Recycle Bin
+app.get('/api/documents/deleted', requireAuth, async (req, res) => {
+    try {
+        const queryText = `
+            SELECT d.id, d.title, d.category, d.document_date,
+                   dv.version_number, dv.standardized_file_name
+            FROM Document d
+            JOIN DocumentVersion dv ON d.id = dv.document_id
+            WHERE d.is_deleted = TRUE AND dv.version_number = (
+                SELECT MAX(version_number) FROM DocumentVersion WHERE document_id = d.id
+            )
+            ORDER BY d.id DESC
+        `;
+        const result = await pool.query(queryText);
+        res.json({ documents: result.rows });
+    } catch (error) {
+        console.error("Fetch deleted error:", error);
+        res.status(500).send('Server error');
+    }
+});
+
+// Restore Document from Recycle Bin
+app.post('/api/documents/restore/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await pool.query('UPDATE document SET is_deleted = FALSE WHERE id = $1', [id]);
+        res.status(200).send('Restored successfully');
+    } catch (error) {
+        console.error("Restore error:", error);
+        res.status(500).send('Server error');
+    }
+});
+
+// Permanent Delete
+app.delete('/api/documents/permanent-delete/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await pool.query('DELETE FROM document WHERE id = $1', [id]);
+        res.status(200).send('Permanently deleted');
+    } catch (error) {
+        console.error("Permanent delete error:", error);
+        res.status(500).send('Server error');
     }
 });
 
