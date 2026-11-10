@@ -66,9 +66,35 @@
       .logout-btn:hover { background: rgba(240, 138, 155, 0.2); color: #ffb3c1; }
       .close-btn { position: absolute; top: 20px; left: 20px; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; transition: all 0.2s ease; border: none; z-index: 100; color: white; background: rgba(255, 255, 255, 0.1); }
       .close-btn:hover { transform: scale(1.1); background: rgba(255, 255, 255, 0.2); }
-      .open-btn { font-size: 24px; color: #7c5cff; cursor: pointer; display: none; margin-bottom: 20px; transition: 0.2s; background: white; width: 45px; height: 45px; border-radius: 50%; box-shadow: 0 4px 15px rgba(124, 92, 255, 0.2); text-align: center; line-height: 45px; }
-      .open-btn:hover { color: #5b43c7; transform: scale(1.05); }
-      .main-content.expanded .open-btn { display: block; }
+      .open-btn {
+        position: fixed;
+        top: 25px;
+        left: 25px;
+        font-size: 20px;
+        color: #7c5cff;
+        cursor: pointer;
+        display: none;
+        background: #ffffff;
+        border: 1px solid #e7e2f2;
+        padding: 12px 15px;
+        border-radius: 50px;
+        box-shadow: 0 4px 15px rgba(23, 20, 43, 0.08);
+        transition: 0.2s;
+        z-index: 1000;
+      }
+
+      .open-btn:hover {
+        background: #f0eef5;
+        color: #5b43c7;
+        transform: scale(1.05);
+      }
+
+      /* Ensure it only shows when the sidebar is collapsed/expanded */
+      .main-content.expanded .open-btn {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+      }
 
       /* Main Content */
       .main-content { margin-left: 260px; flex-grow: 1; padding: 30px 45px; display: flex; flex-direction: column; gap: 25px; width: calc(100% - 260px); transition: margin-left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); position: relative; }
@@ -174,6 +200,58 @@
       .btn-confirm:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(124, 92, 255, 0.4); }
       .viewer-modal { max-width: 1000px !important; width: 95%; height: 90vh; display: flex; flex-direction: column; padding: 25px; }
       .viewer-iframe { flex-grow: 1; width: 100%; border: 2px solid #e7e2f2; border-radius: 16px; margin-bottom: 20px; background: #f5f3fa; }
+      /* Global Mobile Responsiveness */
+      @media (max-width: 768px) {
+        .sidebar {
+          transform: translateX(-100%);
+        }
+        .sidebar:not(.closed) {
+          transform: translateX(0);
+        }
+        .main-content {
+          margin-left: 0 !important;
+          width: 100% !important;
+          padding: 20px 18px !important;
+        }
+        .open-btn {
+          display: flex !important;
+          align-items: center;
+          justify-content: center;
+        }
+        .welcome-banner {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 15px;
+          padding: 25px 20px;
+        }
+        .action-bar {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .action-btn-custom {
+          justify-content: center;
+        }
+        .doc-list-item {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 15px;
+        }
+        .doc-actions-wrapper {
+          width: 100%;
+          justify-content: space-between;
+        }
+      }
+
+      /* Compact, Mobile-Friendly SweetAlert Custom Popup */
+      .swal2-popup.swal2-custom-popup {
+        width: 360px !important;
+        max-width: 90vw !important; /* Prevents edge-clipping on small mobile screens */
+        padding: 25px 20px !important; /* Reduces vertical white space */
+        border-radius: 28px !important;
+        font-family: 'Inter', sans-serif !important;
+        box-shadow: 0 20px 40px rgba(23, 20, 43, 0.12) !important;
+        border: 1px solid #e7e2f2 !important;
+      }
     </style>
   </head>
   <body>
@@ -272,10 +350,16 @@
       </div>
 
       <div class="section-header">
+        <h2><i class="fa-solid fa-fire" style="color: #f59e0b;"></i> Frequently Accessed</h2>
+      </div>
+      <div class="docs-grid" id="frequentGrid" style="margin-bottom: 25px;">
+        <!-- Populated by JS -->
+      </div>
+
+      <div class="section-header">
         <h2><i class="fa-solid fa-bolt"></i> Recent Activity</h2>
         <a href="/documents" class="view-all">Browse Library &rarr;</a>
       </div>
-
       <div class="docs-grid" id="documentGrid">
         <!-- Populated by JS -->
       </div>
@@ -350,8 +434,50 @@
           document.getElementById("statEvents").innerText = allFetchedDocuments.filter(doc => doc.category === "Events").length;
 
           renderDocumentCards(allFetchedDocuments);
+
+          fetchFrequentDocuments();
         } catch (error) {
           console.error("Error fetching documents:", error);
+        }
+      }
+      async function fetchFrequentDocuments() {
+        try {
+          const response = await fetch("/api/documents/frequent");
+          const data = await response.json();
+          const frequentContainer = document.getElementById("frequentGrid");
+          frequentContainer.innerHTML = "";
+
+          if (data.documents.length === 0) {
+            frequentContainer.innerHTML = '<div style="grid-column: 1 / -1; color: #918ba1; padding: 20px;">No access data available yet.</div>';
+            return;
+          }
+
+          data.documents.forEach((doc) => {
+            const filePath = `/repository/${doc.category}/${doc.standardized_file_name}`;
+            const fileExt = doc.standardized_file_name.split(".").pop().toLowerCase();
+
+            let iconClass = "fa-file-lines"; let iconColor = "icon-doc"; let borderCol = "#7c5cff";
+            if (fileExt === "pdf") { iconClass = "fa-file-pdf"; iconColor = "icon-pdf"; borderCol = "#f59e0b"; }
+            if (["xls", "xlsx"].includes(fileExt)) { iconClass = "fa-file-excel"; iconColor = "icon-xls"; borderCol = "#22c55e"; }
+
+            const card = document.createElement("div");
+            card.className = "doc-card";
+            card.style.borderBottom = `4px solid ${borderCol}`;
+
+            card.innerHTML = `
+                  <div class="doc-header">
+                      <span class="doc-tag" style="background:#fff3cd; color:#856404;"><i class="fa-solid fa-eye"></i> ${doc.view_count || 0} Views</span>
+                  </div>
+                  <div class="doc-icon ${iconColor}"><i class="fa-solid ${iconClass}"></i></div>
+                  <div class="doc-title" title="${doc.standardized_file_name}">${doc.standardized_file_name}</div>
+                  <div class="doc-actions">
+                      <button onclick="openDocumentViewer('${filePath}', '${doc.standardized_file_name}', ${doc.id})" class="btn-view" style="width: 100%;">Open Document</button>
+                  </div>
+              `;
+            frequentContainer.appendChild(card);
+          });
+        } catch (error) {
+          console.error("Error fetching frequent documents:", error);
         }
       }
 
@@ -440,7 +566,7 @@
       const approvalModal = document.getElementById("approvalModal");
       const modalConfirmBtn = document.getElementById("modalConfirmBtn");
       const modalCancelBtn = document.getElementById("modalCancelBtn");
-
+      
       function approveDocument(docId) {
         pendingDocId = docId;
         document.getElementById("modalIcon").className = "modal-icon";

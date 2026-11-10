@@ -6,387 +6,88 @@
     <title>ISS-DS | Upload Document</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/style.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-        font-family: "Inter", sans-serif;
-      }
+      * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Inter", sans-serif; }
+      body { background: #f4f2f9; display: flex; min-height: 100vh; color: #17142b; overflow-x: hidden; }
 
-      body {
-        background: #f4f2f9;
-        display: flex;
-        min-height: 100vh;
-        color: #17142b;
-        overflow-x: hidden;
-      }
+      /* Unified Sidebar */
+      .sidebar { width: 260px; background: linear-gradient(180deg, #23b1ca 0%, #331780 100%); color: white; display: flex; flex-direction: column; position: fixed; height: 100vh; border-top-right-radius: 24px; border-bottom-right-radius: 24px; padding: 20px 0; z-index: 10; transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 5px 0 25px rgba(51, 23, 128, 0.15); overflow-y: auto; }
+      .sidebar::-webkit-scrollbar { display: none; }
+      .sidebar.closed { transform: translateX(-100%); }
+      .logo-container { text-align: center; margin-bottom: 20px; padding: 30px 20px 0 20px; position: relative; }
+      .sidebar-logo { width: 140px; height: auto; background-color: transparent; padding: 0; filter: drop-shadow(0px 8px 12px rgba(124, 92, 255, 0.4)); margin-bottom: 10px; transition: 0.3s; }
+      .sidebar-logo:hover { transform: scale(1.05); }
+      .close-btn { position: absolute; top: 20px; left: 20px; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; transition: all 0.2s ease; border: none; z-index: 100; color: white; background: rgba(255, 255, 255, 0.1); }
+      .close-btn:hover { transform: scale(1.1); background: rgba(255, 255, 255, 0.2); }
+      
+      .nav-menu { display: flex; flex-direction: column; padding: 0 15px; flex-grow: 1; margin-top: 10px; margin-bottom: 20px; }
+      .nav-link { display: flex; align-items: center; gap: 15px; padding: 14px 20px; color: #d9d5ea; text-decoration: none; border-radius: 12px; margin-bottom: 8px; font-size: 14px; transition: all 0.3s ease; }
+      .nav-link:hover, .nav-link.active { background: rgba(255, 255, 255, 0.15); color: #ffffff; font-weight: 600; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); backdrop-filter: blur(5px); }
+      .nav-link i { font-size: 18px; width: 20px; text-align: center; }
+      
+      .sidebar-profile { padding: 20px; margin: auto 15px 20px 15px; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; display: flex; align-items: center; justify-content: space-between; backdrop-filter: blur(10px); }
+      .profile-info { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+      .profile-info i.fa-circle-user { font-size: 28px; color: #34d399; }
+      .logout-btn { color: #f08a9b; text-decoration: none; font-size: 14px; padding: 8px; border-radius: 8px; transition: 0.2s; }
+      .logout-btn:hover { background: rgba(240, 138, 155, 0.2); color: #ffb3c1; }
 
-      /* Unified Sidebar matching Dashboard */
-      .sidebar {
-        width: 260px;
-        background: linear-gradient(180deg, #23b1ca 0%, #331780 100%);
-        color: white;
-        display: flex;
-        flex-direction: column;
-        position: fixed;
-        height: 100vh;
-        border-top-right-radius: 24px;
-        border-bottom-right-radius: 24px;
-        padding: 20px 0;
-        z-index: 10;
-        transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-        box-shadow: 5px 0 25px rgba(51, 23, 128, 0.15);
-        overflow-y: auto;
-      }
-
-      .sidebar::-webkit-scrollbar {
-        display: none;
-      }
-
-      .sidebar.closed {
-        transform: translateX(-100%);
-      }
-
-      .logo-container {
-        text-align: center;
-        margin-bottom: 20px;
-        padding: 30px 20px 0 20px;
-        position: relative;
-      }
-
-      .sidebar-logo {
-        width: 140px;
-        height: auto;
-        background-color: transparent;
-        padding: 0;
-        filter: drop-shadow(0px 8px 12px rgba(124, 92, 255, 0.4));
-        margin-bottom: 10px;
-        transition: 0.3s;
-      }
-
-      .sidebar-logo:hover {
-        transform: scale(1.05);
-      }
-
-      .close-btn {
-        position: absolute;
-        top: 20px;
-        left: 20px;
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        border: none;
-        z-index: 100;
-        color: white;
-        background: rgba(255, 255, 255, 0.1);
-      }
-
-      .close-btn:hover {
-        transform: scale(1.1);
-        background: rgba(255, 255, 255, 0.2);
-      }
-
-      .nav-menu {
-        display: flex;
-        flex-direction: column;
-        padding: 0 15px;
-        flex-grow: 1;
-        margin-top: 10px;
-        margin-bottom: 20px;
-      }
-
-      .nav-link {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        padding: 14px 20px;
-        color: #d9d5ea;
-        text-decoration: none;
-        border-radius: 12px;
-        margin-bottom: 8px;
-        font-size: 14px;
-        transition: all 0.3s ease;
-      }
-
-      .nav-link:hover,
-      .nav-link.active {
-        background: rgba(255, 255, 255, 0.15);
-        color: #ffffff;
-        font-weight: 600;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        backdrop-filter: blur(5px);
-      }
-
-      .nav-link i {
-        font-size: 18px;
-        width: 20px;
-        text-align: center;
-      }
-
-      .sidebar-profile {
-        padding: 20px;
-        margin: auto 15px 20px 15px;
-        background: rgba(0, 0, 0, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        backdrop-filter: blur(10px);
-      }
-
-      .profile-info {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        font-size: 13px;
-      }
-
-      .profile-info i {
-        font-size: 28px;
-        color: #34d399;
-      }
-
-      .logout-btn {
-        color: #f08a9b;
-        text-decoration: none;
-        font-size: 14px;
-        padding: 8px;
-        border-radius: 8px;
-        transition: 0.2s;
-      }
-
-      .logout-btn:hover {
-        background: rgba(240, 138, 155, 0.2);
-        color: #ffb3c1;
-      }
-
-      .open-btn {
-        font-size: 24px;
-        color: #7c5cff;
-        cursor: pointer;
-        display: none;
-        margin-bottom: 20px;
-        transition: 0.2s;
-        background: white;
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        box-shadow: 0 4px 15px rgba(124, 92, 255, 0.2);
-        text-align: center;
-        line-height: 45px;
-      }
-
-      .open-btn:hover {
-        color: #5b43c7;
-        transform: scale(1.05);
-      }
-
-      .main-content.expanded .open-btn {
-        display: block;
-      }
+      .open-btn { position: fixed; top: 25px; left: 25px; font-size: 20px; color: #7c5cff; cursor: pointer; display: none; background: #ffffff; border: 1px solid #e7e2f2; padding: 12px 15px; border-radius: 50px; box-shadow: 0 4px 15px rgba(23, 20, 43, 0.08); transition: 0.2s; z-index: 1000; }
+      .open-btn:hover { background: #f0eef5; color: #5b43c7; transform: scale(1.05); }
+      .main-content.expanded .open-btn { display: flex !important; align-items: center; justify-content: center; }
 
       /* Main Content Layout */
-      .main-content {
-        margin-left: 260px;
-        flex-grow: 1;
-        padding: 30px 45px;
-        display: flex;
-        flex-direction: column;
-        gap: 25px;
-        width: calc(100% - 260px);
-        transition: margin-left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-      }
-
-      .main-content.expanded {
-        margin-left: 0;
-        padding-left: 45px;
-        width: 100%;
-      }
+      .main-content { margin-left: 260px; flex-grow: 1; padding: 30px 45px; display: flex; flex-direction: column; gap: 25px; width: calc(100% - 260px); transition: margin-left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); }
+      .main-content.expanded { margin-left: 0; padding-left: 45px; width: 100%; }
 
       /* Creative Welcome Banner */
-      .welcome-banner {
-        background: linear-gradient(135deg, #7c5cff 0%, #23b1ca 100%);
-        border-radius: 24px;
-        padding: 35px 45px;
-        color: white;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 15px 35px rgba(124, 92, 255, 0.25);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .welcome-banner::before {
-        content: '';
-        position: absolute;
-        top: -50px;
-        right: -50px;
-        width: 250px;
-        height: 250px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-        backdrop-filter: blur(10px);
-      }
-
-      .welcome-text {
-        position: relative;
-        z-index: 1;
-      }
-
-      .welcome-text h1 {
-        font-size: 32px;
-        font-weight: 700;
-        margin-bottom: 8px;
-        letter-spacing: -0.5px;
-      }
-
-      .welcome-text p {
-        font-size: 15px;
-        color: rgba(255, 255, 255, 0.9);
-      }
-
-      .date-badge {
-        position: relative;
-        z-index: 1;
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(10px);
-        padding: 12px 25px;
-        border-radius: 50px;
-        font-weight: 600;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-      }
+      .welcome-banner { background: linear-gradient(135deg, #7c5cff 0%, #23b1ca 100%); border-radius: 24px; padding: 35px 45px; color: white; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 15px 35px rgba(124, 92, 255, 0.25); position: relative; overflow: hidden; }
+      .welcome-banner::before { content: ''; position: absolute; top: -50px; right: -50px; width: 250px; height: 250px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; backdrop-filter: blur(10px); }
+      .welcome-text { position: relative; z-index: 1; }
+      .welcome-text h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; }
+      .welcome-text p { font-size: 15px; color: rgba(255, 255, 255, 0.9); }
+      .date-badge { position: relative; z-index: 1; background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); padding: 12px 25px; border-radius: 50px; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255, 255, 255, 0.3); }
 
       /* Form Specific Styles */
-      .upload-container {
-        width: 100%;
-        max-width: 700px;
-        background: #ffffff;
-        padding: 40px;
-        border-radius: 24px;
-        box-shadow: 0 10px 30px rgba(23, 20, 43, 0.05);
-        border: 1px solid #e7e2f2;
-        margin: 0 auto;
-      }
+      .upload-container { width: 100%; max-width: 700px; background: #ffffff; padding: 40px; border-radius: 24px; box-shadow: 0 10px 30px rgba(23, 20, 43, 0.05); border: 1px solid #e7e2f2; margin: 0 auto; }
+      .form-group { margin-bottom: 22px; }
+      label { display: block; color: #17142b; font-weight: 600; margin-bottom: 8px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+      .input-wrapper { position: relative; display: flex; align-items: center; }
+      .input-wrapper i { position: absolute; left: 16px; color: #918ba1; font-size: 16px; }
 
-      .form-group {
-        margin-bottom: 22px;
-      }
+      input[type="text"], input[type="date"], select { width: 100%; padding: 14px 14px 14px 45px; border: 2px solid #e2ddeb; border-radius: 12px; font-size: 14px; outline: none; background: #f8f7fb; color: #17142b; transition: all 0.3s ease; }
+      input[type="date"] { padding-left: 14px; }
+      input:focus, select:focus { border-color: #7c5cff; background: #ffffff; box-shadow: 0 0 0 4px rgba(124, 92, 255, 0.12); }
 
-      label {
-        display: block;
-        color: #17142b;
-        font-weight: 600;
-        margin-bottom: 8px;
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
+      .file-box { border: 2px dashed #d6d1e1; border-radius: 16px; padding: 30px; text-align: center; background: #f8f7fb; transition: all 0.3s ease; cursor: pointer; }
+      .file-box:hover { border-color: #7c5cff; background: #eee9ff; }
+      input[type="file"] { border: none; padding: 10px; background: #ffffff; color: #5b43c7; width: 100%; border-radius: 8px; border: 1px solid #e2ddeb; cursor: pointer; font-weight: 500; }
 
-      .input-wrapper {
-        position: relative;
-        display: flex;
-        align-items: center;
-      }
+      button[type="submit"] { width: 100%; padding: 16px; border: none; border-radius: 12px; background: linear-gradient(90deg, #7c5cff, #5b43c7); color: white; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(124, 92, 255, 0.3); margin-top: 10px; }
+      button[type="submit"]:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(124, 92, 255, 0.4); }
+      button[type="submit"]:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+      .required { color: #d6455d; }
 
-      .input-wrapper i {
-        position: absolute;
-        left: 16px;
-        color: #918ba1;
-        font-size: 16px;
+      /* Clean, Consolidated Custom SweetAlert Popup Styling */
+      .swal2-popup.swal2-custom-popup {
+        width: 360px !important; /* Restricts the overall width */
+        padding: 25px 20px !important; /* Reduces the thick white space inside */
+        border-radius: 28px !important;
+        font-family: 'Inter', sans-serif !important;
+        box-shadow: 0 20px 40px rgba(23, 20, 43, 0.12) !important;
+        border: 1px solid #e7e2f2 !important;
       }
+      .swal2-ok-btn { background: #7c5cff !important; color: white !important; border: none !important; padding: 12px 32px !important; border-radius: 14px !important; font-weight: 600 !important; font-size: 14px !important; cursor: pointer !important; box-shadow: 0 4px 12px rgba(124, 92, 255, 0.25) !important; }
 
-      input[type="text"],
-      input[type="date"],
-      select {
-        width: 100%;
-        padding: 14px 14px 14px 45px;
-        border: 2px solid #e2ddeb;
-        border-radius: 12px;
-        font-size: 14px;
-        outline: none;
-        background: #f8f7fb;
-        color: #17142b;
-        transition: all 0.3s ease;
+      @media (max-width: 768px) {
+        .sidebar { transform: translateX(-100%); }
+        .sidebar:not(.closed) { transform: translateX(0); }
+        .main-content { margin-left: 0 !important; width: 100% !important; padding: 20px !important; }
+        .open-btn { display: block !important; }
+        .welcome-banner { flex-direction: column; align-items: flex-start; gap: 15px; }
       }
-
-      input[type="date"] {
-        padding-left: 14px; /* Date inputs handle icons natively or better without left padding */
-      }
-
-      input:focus,
-      select:focus {
-        border-color: #7c5cff;
-        background: #ffffff;
-        box-shadow: 0 0 0 4px rgba(124, 92, 255, 0.12);
-      }
-
-      .file-box {
-        border: 2px dashed #d6d1e1;
-        border-radius: 16px;
-        padding: 30px;
-        text-align: center;
-        background: #f8f7fb;
-        transition: all 0.3s ease;
-        cursor: pointer;
-      }
-
-      .file-box:hover {
-        border-color: #7c5cff;
-        background: #eee9ff;
-      }
-
-      input[type="file"] {
-        border: none;
-        padding: 10px;
-        background: #ffffff;
-        color: #5b43c7;
-        width: 100%;
-        border-radius: 8px;
-        border: 1px solid #e2ddeb;
-        cursor: pointer;
-        font-weight: 500;
-      }
-
-      button[type="submit"] {
-        width: 100%;
-        padding: 16px;
-        border: none;
-        border-radius: 12px;
-        background: linear-gradient(90deg, #7c5cff, #5b43c7);
-        color: white;
-        font-size: 16px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(124, 92, 255, 0.3);
-        margin-top: 10px;
-      }
-
-      button[type="submit"]:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(124, 92, 255, 0.4);
-      }
-
-      .required {
-        color: #d6455d;
-      }
-
+      /* Global Mobile Responsiveness */
       @media (max-width: 768px) {
         .sidebar {
           transform: translateX(-100%);
@@ -397,16 +98,46 @@
         .main-content {
           margin-left: 0 !important;
           width: 100% !important;
-          padding: 20px !important;
+          padding: 20px 18px !important;
         }
         .open-btn {
-          display: block !important;
+          display: flex !important;
+          align-items: center;
+          justify-content: center;
         }
         .welcome-banner {
           flex-direction: column;
           align-items: flex-start;
           gap: 15px;
+          padding: 25px 20px;
         }
+        .action-bar {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .action-btn-custom {
+          justify-content: center;
+        }
+        .doc-list-item {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 15px;
+        }
+        .doc-actions-wrapper {
+          width: 100%;
+          justify-content: space-between;
+        }
+      }
+
+      /* Compact, Mobile-Friendly SweetAlert Custom Popup */
+      .swal2-popup.swal2-custom-popup {
+        width: 360px !important;
+        max-width: 90vw !important; /* Prevents edge-clipping on small mobile screens */
+        padding: 25px 20px !important; /* Reduces vertical white space */
+        border-radius: 28px !important;
+        font-family: 'Inter', sans-serif !important;
+        box-shadow: 0 20px 40px rgba(23, 20, 43, 0.12) !important;
+        border: 1px solid #e7e2f2 !important;
       }
     </style>
   </head>
@@ -420,46 +151,23 @@
       </div>
 
       <div class="nav-menu">
-        <a href="/dashboard" class="nav-link">
-          <i class="fa-solid fa-house"></i> Dashboard
-        </a>
-
-        <a href="/upload" class="nav-link active">
-          <i class="fa-solid fa-cloud-arrow-up"></i> Upload Document
-        </a>
-
-        <a href="/documents" class="nav-link">
-          <i class="fa-regular fa-file-lines"></i> My Documents
-        </a>
-
-        <a href="/activity-log" class="nav-link">
-          <i class="fa-solid fa-chart-line"></i> Activity Log
-        </a>
-
-        <a href="/recycle-bin" class="nav-link">
-          <i class="fa-solid fa-trash-can-arrow-up"></i> Recycle Bin
-        </a>
-        
-        <a href="/admin" class="nav-link">
-          <i class="fa-solid fa-gear"></i> Admin Panel
-        </a>
+        <a href="/dashboard" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a>
+        <a href="/upload" class="nav-link active"><i class="fa-solid fa-cloud-arrow-up"></i> Upload Document</a>
+        <a href="/documents" class="nav-link"><i class="fa-regular fa-file-lines"></i> My Documents</a>
+        <a href="/activity-log" class="nav-link"><i class="fa-solid fa-chart-line"></i> Activity Log</a>
+        <a href="/recycle-bin" class="nav-link"><i class="fa-solid fa-trash-can-arrow-up"></i> Recycle Bin</a>
+        <a href="/admin" class="nav-link"><i class="fa-solid fa-gear"></i> Admin Panel</a>
       </div>
 
       <div class="sidebar-profile">
         <div class="profile-info">
           <i class="fa-solid fa-circle-user"></i>
           <div>
-            <div style="font-size: 11px; color: #a7f3d0; margin-bottom: 2px;">ISS-DS Portal</div>
-            <div style="font-weight: bold; color: white;" id="userDisplay">
-              User
-              <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 5px"></i>
-            </div>
+            <span style="font-size: 11px; color: #a7f3d0; display: block; margin-bottom: 2px;">ISS-DS Portal</span>
+            <span style="font-weight: bold; color: white;" id="userDisplay">User <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 3px;"></i></span>
           </div>
         </div>
-
-        <a href="/logout" class="logout-btn" title="Logout">
-          <i class="fa-solid fa-right-from-bracket"></i>
-        </a>
+        <a href="/logout" class="logout-btn" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></a>
       </div>
     </div>
 
@@ -467,7 +175,6 @@
     <div class="main-content">
       <i class="fa-solid fa-bars open-btn" id="openSidebar" title="Open Menu"></i>
 
-      <!-- Creative Welcome Banner matching Dashboard -->
       <div class="welcome-banner">
         <div class="welcome-text">
           <h1>Upload Document 🚀</h1>
@@ -480,34 +187,24 @@
       </div>
 
       <div class="upload-container">
-        <form action="/api/upload" method="POST" enctype="multipart/form-data">
+        <form id="uploadForm">
           <div class="form-group">
-            <label for="title">
-              Document Title <span class="required">*</span>
-            </label>
+            <label for="title">Document Title <span class="required">*</span></label>
             <div class="input-wrapper">
               <i class="fa-solid fa-heading"></i>
-              <input
-                type="text"
-                id="title"
-                name="title"
-                required
-                placeholder="e.g., Q3 Meeting Minutes"
-              />
+              <input type="text" id="title" name="title" required placeholder="e.g., Q3 Meeting Minutes" />
             </div>
           </div>
 
           <div class="form-group">
-            <label for="category">
-              Category <span class="required">*</span>
-            </label>
+            <label for="categorySelect">Category <span class="required">*</span></label>
             <div class="input-wrapper">
               <i class="fa-solid fa-folder-open"></i>
-              <select id="category" name="category" required style="padding-left: 45px;">
+              <select id="categorySelect" name="category" required style="padding-left: 45px;">
                 <option value="" disabled selected>Select a category</option>
                 <option value="Reports">📊 Reports</option>
                 <option value="Memos">📝 Memos</option>
-                <option value="Records">📁 Records</option>
+                <option value="Records">🗄️ Records</option>
                 <option value="Finance">💰 Finance</option>
                 <option value="Events">📅 Events</option>
               </select>
@@ -515,16 +212,12 @@
           </div>
 
           <div class="form-group">
-            <label for="date">
-              Document Date <span class="required">*</span>
-            </label>
+            <label for="date">Document Date <span class="required">*</span></label>
             <input type="date" id="date" name="date" required />
           </div>
 
           <div class="form-group">
-            <label for="file">
-              Select Document <span class="required">*</span>
-            </label>
+            <label for="file">Select Document <span class="required">*</span></label>
             <div class="file-box">
               <div style="color: #7c5cff; font-size: 32px; margin-bottom: 10px;">
                 <i class="fa-solid fa-cloud-arrow-up"></i>
@@ -544,62 +237,146 @@
     </div>
 
     <script>
-      // Set current date in header badge
+      // Date setup
       const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
       document.getElementById('currentDateDisplay').innerText = new Date().toLocaleDateString('en-US', options);
 
+      // Mobile Sidebar Toggle
       const sidebar = document.querySelector(".sidebar");
       const mainContent = document.querySelector(".main-content");
+      document.getElementById("closeSidebar").addEventListener("click", () => { sidebar.classList.add("closed"); mainContent.classList.add("expanded"); });
+      document.getElementById("openSidebar").addEventListener("click", () => { sidebar.classList.remove("closed"); mainContent.classList.remove("expanded"); });
 
-      document.getElementById("closeSidebar").addEventListener("click", () => {
-        sidebar.classList.add("closed");
-        mainContent.classList.add("expanded");
-      });
+      // Fetch User Role
+      fetch("/api/documents").then(response => response.json()).then(data => {
+        const userDisplayEl = document.getElementById("userDisplay");
+        if (userDisplayEl && data.userRole) {
+          userDisplayEl.innerHTML = `@${data.userRole} <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 5px;"></i>`;
+        }
+      }).catch(error => console.error("Error fetching user role:", error));
 
-      document.getElementById("openSidebar").addEventListener("click", () => {
-        sidebar.classList.remove("closed");
-        mainContent.classList.remove("expanded");
-      });
-    </script>
+      // Subfolder Map & Generation Logic
+      const subFoldersMap = JSON.parse(localStorage.getItem('iss_ds_subfolders')) || { 
+        "Memos": [
+          "Memo for officer only (Signatories addresses until LCO unit head)",
+          "Org wide memo (Signatories addresses until VTAA)"
+        ],
+        "Records": [
+          "Resolution",
+          "Minutes of the meeting"
+        ],
+        "Reports": [
+          "Activity design",
+          "Utilization"
+        ],
+        "Events": [
+          "Tech Seminar",
+          "Community Outreach"
+        ]
+      };
 
-    <script>
-      // Quietly fetch from the existing documents API just to grab the user role
-      fetch("/api/documents")
-        .then((response) => response.json())
-        .then((data) => {
-          const userDisplayEl = document.getElementById("userDisplay");
+      const categorySelect = document.getElementById('categorySelect');
 
-          if (userDisplayEl && data.userRole) {
-            userDisplayEl.innerHTML = `@${data.userRole} <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 5px;"></i>`;
+      if (categorySelect) {
+        if (!document.getElementById('subfolderSelect')) {
+          const subfolderGroup = document.createElement('div');
+          subfolderGroup.style.marginTop = "20px";
+          subfolderGroup.style.marginBottom = "20px";
+          subfolderGroup.innerHTML = `
+            <label style="display: block; color: #17142b; font-weight: 600; font-size: 13px; margin-bottom: 8px; text-transform: uppercase;">Subfolder / Specific Target *</label>
+            <select id="subfolderSelect" name="subfolder" required style="width: 100%; padding: 12px 16px; border: 2px solid #e2ddeb; border-radius: 12px; outline: none; background: #f8f7fb; cursor: pointer;">
+              <option value="General" selected>General / Unassigned</option>
+            </select>
+          `;
+          categorySelect.closest('div').after(subfolderGroup);
+        }
+
+        const subfolderSelect = document.getElementById('subfolderSelect');
+
+        function updateSubfolderDropdown(selectedCategory, preselectSub = '') {
+          subfolderSelect.innerHTML = `<option value="General">General / Unassigned</option>`;
+          const subs = subFoldersMap[selectedCategory] || [];
+          subs.forEach(sub => {
+            const opt = document.createElement('option');
+            opt.value = sub;
+            opt.textContent = sub;
+            if (sub === preselectSub) opt.selected = true;
+            subfolderSelect.appendChild(opt);
+          });
+        }
+
+        categorySelect.addEventListener('change', function(e) {
+          updateSubfolderDropdown(e.target.value);
+        });
+
+        // Pre-select if redirected from "Upload Here" in Documents
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramCat = urlParams.get('category');
+        const paramSub = urlParams.get('subfolder');
+
+        if (paramCat) {
+          categorySelect.value = paramCat;
+          updateSubfolderDropdown(paramCat, paramSub);
+        }
+      }
+
+      // Custom Success UI Popup
+      async function showSuccessPopup(message) {
+        return Swal.fire({
+          html: `
+            <div style="display: flex; flex-direction: column; align-items: center; padding: 10px 0 0 0;">
+              <div style="width: 72px; height: 72px; background: rgba(22, 128, 91, 0.08); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                <i class="fa-solid fa-circle-check" style="font-size: 34px; color: #16805b;"></i>
+              </div>
+              <h2 style="font-size: 22px; font-weight: 700; color: #17142b; margin-bottom: 8px; letter-spacing: -0.5px;">Uploaded!</h2>
+              <p style="font-size: 14px; color: #6b6678; text-align: center; margin-bottom: 15px; line-height: 1.5;">${message}</p>
+            </div>
+          `,
+          confirmButtonText: 'OK',
+          buttonsStyling: false,
+          customClass: {
+            popup: 'swal2-custom-popup',
+            confirmButton: 'swal2-ok-btn'
           }
-        })
-        .catch((error) => console.error("Error fetching user role:", error));
+        });
+      }
+
+      // Intercept Form Submission for AJAX upload & Success Popup
+      const uploadForm = document.getElementById('uploadForm');
+      uploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const submitBtn = uploadForm.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Uploading...';
+        submitBtn.disabled = true;
+
+        const formData = new FormData(uploadForm);
+
+        try {
+          const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+          });
+
+          if (response.ok) {
+            await showSuccessPopup("Your document has been uploaded and secured in the repository.");
+            uploadForm.reset();
+            if(categorySelect.value) {
+              updateSubfolderDropdown(categorySelect.value); // Reset subfolder view
+            }
+          } else {
+            const errText = await response.text();
+            Swal.fire("Upload Failed", errText, "error");
+          }
+        } catch (error) {
+          console.error("Upload error:", error);
+          Swal.fire("Error", "Network error occurred during upload.", "error");
+        } finally {
+          submitBtn.innerHTML = originalBtnText;
+          submitBtn.disabled = false;
+        }
+      });
     </script>
-    <script>
-  // Check if redirected with success parameter
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get("uploaded") === "success") {
-    Swal.fire({
-      title: "Document Uploaded! 🚀",
-      text: "Your file has been securely added to the ISS-DS repository.",
-      icon: "success",
-      confirmButtonText: "Return to Dashboard",
-      confirmButtonColor: "#7c5cff",
-      background: "#ffffff",
-      color: "#17142b",
-      backdrop: `rgba(23, 20, 43, 0.65)`,
-      customClass: {
-        popup: 'custom-swal-popup'
-      }
-    }).then((result) => {
-      if (result.isConfirmed) {
-        window.location.href = "/dashboard";
-      }
-    });
-    
-    // Clean up the URL
-    window.history.replaceState({}, document.title, "/upload");
-  }
-</script>
   </body>
 </html>

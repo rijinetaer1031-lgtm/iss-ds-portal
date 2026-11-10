@@ -6,11 +6,13 @@
     <title>ISS-DS | Activity Log</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Inter", sans-serif; }
       body { background: #f4f2f9; display: flex; min-height: 100vh; color: #17142b; overflow-x: hidden; }
 
-      /* Unified Sidebar matching Dashboard, Upload & Documents */
+      /* Unified Sidebar */
       .sidebar { width: 260px; background: linear-gradient(180deg, #23b1ca 0%, #331780 100%); color: white; display: flex; flex-direction: column; position: fixed; height: 100vh; border-top-right-radius: 24px; border-bottom-right-radius: 24px; padding: 20px 0; z-index: 10; transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 5px 0 25px rgba(51, 23, 128, 0.15); overflow-y: auto; }
       .sidebar::-webkit-scrollbar { display: none; }
       .sidebar.closed { transform: translateX(-100%); }
@@ -27,47 +29,103 @@
       .profile-info { display: flex; align-items: center; gap: 12px; font-size: 13px; }
       .profile-info i { font-size: 28px; color: #34d399; }
       .logout-btn { color: #f08a9b; text-decoration: none; font-size: 14px; padding: 8px; border-radius: 8px; transition: 0.2s; }
-      .logout-btn:hover { background: rgba(240, 138, 155, 0.2); color: #ffb3c1; }
-      .open-btn { font-size: 24px; color: #7c5cff; cursor: pointer; display: none; margin-bottom: 20px; transition: 0.2s; background: white; width: 45px; height: 45px; border-radius: 50%; box-shadow: 0 4px 15px rgba(124, 92, 255, 0.2); text-align: center; line-height: 45px; }
-      .open-btn:hover { color: #5b43c7; transform: scale(1.05); }
-      .main-content.expanded .open-btn { display: block; }
+
+      .open-btn {
+        position: fixed; top: 25px; left: 25px; font-size: 20px; color: #7c5cff; cursor: pointer; display: none;
+        background: #ffffff; border: 1px solid #e7e2f2; padding: 12px 15px; border-radius: 50px;
+        box-shadow: 0 4px 15px rgba(23, 20, 43, 0.08); transition: 0.2s; z-index: 1000;
+      }
+      .open-btn:hover { background: #f0eef5; color: #5b43c7; transform: scale(1.05); }
+      .main-content.expanded .open-btn { display: flex !important; align-items: center; justify-content: center; }
 
       /* Main Content Layout */
       .main-content { margin-left: 260px; flex-grow: 1; padding: 30px 45px; display: flex; flex-direction: column; gap: 25px; width: calc(100% - 260px); transition: margin-left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); }
       .main-content.expanded { margin-left: 0; padding-left: 45px; width: 100%; }
 
-      /* Creative Welcome Banner matching Dashboard */
+      /* Creative Welcome Banner */
       .welcome-banner { background: linear-gradient(135deg, #7c5cff 0%, #23b1ca 100%); border-radius: 24px; padding: 35px 45px; color: white; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 15px 35px rgba(124, 92, 255, 0.25); position: relative; overflow: hidden; }
       .welcome-banner::before { content: ''; position: absolute; top: -50px; right: -50px; width: 250px; height: 250px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; backdrop-filter: blur(10px); }
-      .welcome-text { position: relative; z-index: 1; }
       .welcome-text h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; }
       .welcome-text p { font-size: 15px; color: rgba(255, 255, 255, 0.9); }
-      .date-badge { position: relative; z-index: 1; background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); padding: 12px 25px; border-radius: 50px; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255, 255, 255, 0.3); }
+      .date-badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); padding: 12px 25px; border-radius: 50px; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255, 255, 255, 0.3); }
 
-      /* Log Container Styles */
-      .log-container { width: 100%; background: #ffffff; padding: 35px; border-radius: 24px; box-shadow: 0 4px 15px rgba(23, 20, 43, 0.04); border: 1px solid #e7e2f2; }
-      .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #f5f3fa; padding-bottom: 20px; }
-      .header h2 { color: #17142b; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 12px; }
-      .header h2 i { color: #7c5cff; background: #eee9ff; padding: 10px; border-radius: 12px; font-size: 16px; }
-
-      table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-      th, td { padding: 16px 14px; text-align: left; border-bottom: 1px solid #e7e2f2; font-size: 14px; }
-      th { background-color: #f8f7fb; color: #17142b; font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
-      tbody tr { transition: 0.2s; }
-      tbody tr:hover { background-color: #fcfbfe; }
-
-      .tag { display: inline-block; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-      .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      /* Card & Clean Table Styling */
+      .card { background: white; border-radius: 24px; padding: 30px; box-shadow: 0 10px 30px rgba(23, 20, 43, 0.03); border: 1px solid #e7e2f2; }
+      .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+      .header h2 { font-size: 18px; font-weight: 700; color: #17142b; display: flex; align-items: center; gap: 10px; }
       
-      @media (max-width: 1024px) { .welcome-banner { flex-direction: column; align-items: flex-start; gap: 20px; } }
+      .filter-group { display: flex; align-items: center; gap: 10px; }
+      .date-picker-input { padding: 8px 14px; border: 2px solid #e7e2f2; border-radius: 12px; font-size: 13px; font-weight: 600; color: #17142b; background: #f8f7fb; outline: none; cursor: pointer; transition: 0.2s; }
+      .date-picker-input:focus { border-color: #7c5cff; background: white; }
+      
+      .clear-filter-btn { background: #d6455d; color: white; border: none; padding: 8px 14px; border-radius: 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; display: none; }
+      .clear-filter-btn.active { display: inline-block; }
+      .clear-filter-btn:hover { opacity: 0.9; }
+
+      table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
+      th { padding: 12px 16px; font-size: 11px; font-weight: 700; color: #918ba1; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid #e7e2f2; background: #fcfbfe; }
+      th:first-child { border-top-left-radius: 12px; }
+      th:last-child { border-top-right-radius: 12px; }
+      td { padding: 16px; font-size: 13.5px; color: #17142b; border-bottom: 1px solid #f4f2f9; vertical-align: middle; }
+      tr:last-child td { border-bottom: none; }
+      tr:hover td { background: #faf9fc; }
+
+      .date-pill { display: inline-flex; align-items: center; gap: 6px; background: #f5f3fa; color: #5b43c7; padding: 6px 12px; border-radius: 8px; font-weight: 600; font-size: 12.5px; border: 1px solid #e7e2f2; }
+      .action-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 6px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: #eee9ff; color: #5b43c7; }
+      /* Global Mobile Responsiveness */
       @media (max-width: 768px) {
-        .sidebar { transform: translateX(-100%); }
-        .sidebar:not(.closed) { transform: translateX(0); }
-        .main-content { margin-left: 0 !important; width: 100% !important; padding: 20px !important; }
-        .open-btn { display: block !important; }
+        .sidebar {
+          transform: translateX(-100%);
+        }
+        .sidebar:not(.closed) {
+          transform: translateX(0);
+        }
+        .main-content {
+          margin-left: 0 !important;
+          width: 100% !important;
+          padding: 20px 18px !important;
+        }
+        .open-btn {
+          display: flex !important;
+          align-items: center;
+          justify-content: center;
+        }
+        .welcome-banner {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 15px;
+          padding: 25px 20px;
+        }
+        .action-bar {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .action-btn-custom {
+          justify-content: center;
+        }
+        .doc-list-item {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 15px;
+        }
+        .doc-actions-wrapper {
+          width: 100%;
+          justify-content: space-between;
+        }
+      }
+      
+      .swal2-popup.swal2-custom-popup {
+        width: 360px !important;
+        max-width: 90vw !important; /* Prevents edge-clipping on small mobile screens */
+        padding: 25px 20px !important; /* Reduces vertical white space */
+        border-radius: 28px !important;
+        font-family: 'Inter', sans-serif !important;
+        box-shadow: 0 20px 40px rgba(23, 20, 43, 0.12) !important;
+        border: 1px solid #e7e2f2 !important;
       }
     </style>
   </head>
+
   <body>
     <!-- Unified Sidebar -->
     <div class="sidebar">
@@ -99,11 +157,10 @@
     <div class="main-content">
       <i class="fa-solid fa-bars open-btn" id="openSidebar" title="Open Menu"></i>
 
-      <!-- Creative Welcome Banner -->
       <div class="welcome-banner">
         <div class="welcome-text">
-          <h1>System Activity Log 📈</h1>
-          <p>Real-time audit trail of user actions, file views, and document modifications.</p>
+          <h1>Activity Log 📊</h1>
+          <p>Track system audit trails and user actions cleanly.</p>
         </div>
         <div class="date-badge">
           <i class="fa-regular fa-calendar-check"></i>
@@ -111,90 +168,111 @@
         </div>
       </div>
 
-      <div class="log-container">
+      <div class="card">
         <div class="header">
-          <h2><i class="fa-solid fa-clipboard-list"></i> Audit Trail History</h2>
+          <h2><i class="fa-solid fa-list-check" style="color: #7c5cff;"></i> Audit Trail History</h2>
+          
+          <!-- Quick Date Filter Input -->
+          <div class="filter-group">
+            <label for="dateFilter" style="font-size: 12px; font-weight: 600; color: #6b6678; text-transform: uppercase;">Filter Date:</label>
+            <input type="date" id="dateFilter" class="date-picker-input" onchange="filterLogsByPicker(this.value)" />
+            <button class="clear-filter-btn" id="clearBtn" onclick="clearDateFilter()">Reset</button>
+          </div>
         </div>
-        <div class="table-responsive">
+
+        <div style="overflow-x: auto;">
           <table>
             <thead>
               <tr>
-                <th>Date & Time</th>
+                <th>Date</th>
                 <th>User</th>
                 <th>Action</th>
                 <th>Target Document</th>
                 <th>Result</th>
               </tr>
             </thead>
-            <tbody id="logTableBody"></tbody>
+            <tbody id="activityTableBody">
+              <!-- Populated via JS -->
+            </tbody>
           </table>
         </div>
       </div>
     </div>
 
     <script>
-      // Set current date in header badge
       const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
       document.getElementById('currentDateDisplay').innerText = new Date().toLocaleDateString('en-US', options);
 
-      async function fetchLogs() {
+      let allActivityLogs = [];
+
+      async function fetchActivityLogs() {
         try {
-          const response = await fetch("/api/activity");
-          if (!response.ok) {
-            document.getElementById("logTableBody").innerHTML = '<tr><td colspan="5" style="text-align:center; color:#d6455d; padding: 30px;">Access Denied.</td></tr>';
-            return;
+          const response = await fetch('/api/activity');
+          if (response.ok) {
+            allActivityLogs = await response.json();
+            renderLogs(allActivityLogs);
+          } else {
+            document.getElementById('activityTableBody').innerHTML = `<tr><td colspan="5" style="text-align: center; color: #d6455d; padding: 30px;">Access Denied: Administrator or President privileges required.</td></tr>`;
           }
-          const logs = await response.json();
-          const tableBody = document.getElementById("logTableBody");
-          
-          if (logs.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#918ba1; padding: 40px;"><i class="fa-solid fa-clipboard" style="font-size: 32px; margin-bottom: 10px; color: #d2cbe6;"></i><br>No activity recorded yet.</td></tr>';
-            return;
-          }
-
-          logs.forEach((log) => {
-            let actionColor = "#5b43c7"; 
-            let bgCol = "#eee9ff";
-            
-            if (log.action_type.includes("Delete") || log.action_type.includes("Recycle")) {
-                actionColor = "#d6455d"; bgCol = "#ffe4e8";
-            } else if (log.action_type.includes("Restore") || log.action_type.includes("Approve")) {
-                actionColor = "#16805b"; bgCol = "#e8f8f1";
-            } else if (log.action_type.includes("View") || log.action_type.includes("Open")) {
-                actionColor = "#a97819"; bgCol = "#fbf3e2";
-            }
-
-            const docDisplay = log.document_title ? 
-                               `<i class="fa-regular fa-file-lines" style="margin-right: 6px; color: #7c5cff;"></i> ${log.document_title}` : 
-                               (log.document_id ? "Doc ID: " + log.document_id : "N/A");
-
-            const row = `<tr>
-                <td style="color: #918ba1; font-weight: 500;">${new Date(log.action_date).toLocaleString()}</td>
-                <td style="font-weight: 700; color: #17142b;">@${log.username}</td>
-                <td><span class="tag" style="color: ${actionColor}; background: ${bgCol};">${log.action_type}</span></td>
-                <td style="color: #17142b; font-weight: 600;">${docDisplay}</td>
-                <td style="color: #6b6678;">${log.result || ""}</td>
-            </tr>`;
-            tableBody.innerHTML += row;
-          });
         } catch (error) {
-          console.error("Error fetching logs:", error);
+          console.error("Error fetching activity logs:", error);
         }
       }
 
-      window.onload = fetchLogs;
+      window.onload = fetchActivityLogs;
+
+      function renderLogs(logs) {
+        const tbody = document.getElementById('activityTableBody');
+        tbody.innerHTML = '';
+
+        if (logs.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #918ba1; padding: 30px;">No activity logs found for this date.</td></tr>`;
+          return;
+        }
+
+        logs.forEach(log => {
+          const rawDate = new Date(log.action_date.replace(" ", "T"));
+          const formattedDate = rawDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+          tbody.innerHTML += `
+            <tr>
+              <td>
+                <span class="date-pill">
+                  <i class="fa-regular fa-calendar"></i> ${formattedDate}
+                </span>
+              </td>
+              <td><strong>@${log.username}</strong></td>
+              <td><span class="action-badge">${log.action_type}</span></td>
+              <td style="color: #6b6678;">${log.document_id ? `Doc ID: ${log.document_id}` : 'N/A'}</td>
+              <td style="color: #6b6678;">${log.result}</td>
+            </tr>
+          `;
+        });
+      }
+
+      window.filterLogsByPicker = function(selectedDate) {
+        if (!selectedDate) return;
+        
+        const filtered = allActivityLogs.filter(log => {
+          const logDateStr = new Date(log.action_date.replace(" ", "T")).toISOString().split('T')[0];
+          return logDateStr === selectedDate;
+        });
+
+        document.getElementById('clearBtn').classList.add('active');
+        renderLogs(filtered);
+      }
+
+      window.clearDateFilter = function() {
+        document.getElementById('dateFilter').value = '';
+        document.getElementById('clearBtn').classList.remove('active');
+        renderLogs(allActivityLogs);
+      }
 
       const sidebar = document.querySelector(".sidebar");
       const mainContent = document.querySelector(".main-content");
-      document.getElementById("closeSidebar").addEventListener("click", () => {
-        sidebar.classList.add("closed");
-        mainContent.classList.add("expanded");
-      });
-      document.getElementById("openSidebar").addEventListener("click", () => {
-        sidebar.classList.remove("closed");
-        mainContent.classList.remove("expanded");
-      });
-      
+      document.getElementById("closeSidebar").addEventListener("click", () => { sidebar.classList.add("closed"); mainContent.classList.add("expanded"); });
+      document.getElementById("openSidebar").addEventListener("click", () => { sidebar.classList.remove("closed"); mainContent.classList.remove("expanded"); });
+
       fetch("/api/documents").then(response => response.json()).then(data => {
           const userDisplayEl = document.getElementById("userDisplay");
           if (userDisplayEl && data.userRole) {

@@ -176,6 +176,58 @@
         25% { transform: translateX(-5px); }
         75% { transform: translateX(5px); }
       }
+      /* Global Mobile Responsiveness */
+      @media (max-width: 768px) {
+        .sidebar {
+          transform: translateX(-100%);
+        }
+        .sidebar:not(.closed) {
+          transform: translateX(0);
+        }
+        .main-content {
+          margin-left: 0 !important;
+          width: 100% !important;
+          padding: 20px 18px !important;
+        }
+        .open-btn {
+          display: flex !important;
+          align-items: center;
+          justify-content: center;
+        }
+        .welcome-banner {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 15px;
+          padding: 25px 20px;
+        }
+        .action-bar {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .action-btn-custom {
+          justify-content: center;
+        }
+        .doc-list-item {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 15px;
+        }
+        .doc-actions-wrapper {
+          width: 100%;
+          justify-content: space-between;
+        }
+      }
+
+      /* Compact, Mobile-Friendly SweetAlert Custom Popup */
+      .swal2-popup.swal2-custom-popup {
+        width: 360px !important;
+        max-width: 90vw !important; /* Prevents edge-clipping on small mobile screens */
+        padding: 25px 20px !important; /* Reduces vertical white space */
+        border-radius: 28px !important;
+        font-family: 'Inter', sans-serif !important;
+        box-shadow: 0 20px 40px rgba(23, 20, 43, 0.12) !important;
+        border: 1px solid #e7e2f2 !important;
+      }
     </style>
   </head>
   <body>

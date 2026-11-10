@@ -173,28 +173,33 @@
       }
 
       .open-btn {
-        font-size: 24px;
+        position: fixed;
+        top: 25px;
+        left: 25px;
+        font-size: 20px;
         color: #7c5cff;
         cursor: pointer;
         display: none;
-        margin-bottom: 20px;
+        background: #ffffff;
+        border: 1px solid #e7e2f2;
+        padding: 12px 15px;
+        border-radius: 50px;
+        box-shadow: 0 4px 15px rgba(23, 20, 43, 0.08);
         transition: 0.2s;
-        background: white;
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        box-shadow: 0 4px 15px rgba(124, 92, 255, 0.2);
-        text-align: center;
-        line-height: 45px;
+        z-index: 1000;
       }
 
       .open-btn:hover {
+        background: #f0eef5;
         color: #5b43c7;
         transform: scale(1.05);
       }
 
+      /* Ensure it only shows when the sidebar is collapsed/expanded */
       .main-content.expanded .open-btn {
-        display: block;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
       }
 
       /* Main Content Layout */
@@ -494,6 +499,58 @@
           grid-column: span 1 !important;
         }
       }
+      /* Global Mobile Responsiveness */
+      @media (max-width: 768px) {
+        .sidebar {
+          transform: translateX(-100%);
+        }
+        .sidebar:not(.closed) {
+          transform: translateX(0);
+        }
+        .main-content {
+          margin-left: 0 !important;
+          width: 100% !important;
+          padding: 20px 18px !important;
+        }
+        .open-btn {
+          display: flex !important;
+          align-items: center;
+          justify-content: center;
+        }
+        .welcome-banner {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 15px;
+          padding: 25px 20px;
+        }
+        .action-bar {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .action-btn-custom {
+          justify-content: center;
+        }
+        .doc-list-item {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 15px;
+        }
+        .doc-actions-wrapper {
+          width: 100%;
+          justify-content: space-between;
+        }
+      }
+
+      /* Compact, Mobile-Friendly SweetAlert Custom Popup */
+      .swal2-popup.swal2-custom-popup {
+        width: 360px !important;
+        max-width: 90vw !important; /* Prevents edge-clipping on small mobile screens */
+        padding: 25px 20px !important; /* Reduces vertical white space */
+        border-radius: 28px !important;
+        font-family: 'Inter', sans-serif !important;
+        box-shadow: 0 20px 40px rgba(23, 20, 43, 0.12) !important;
+        border: 1px solid #e7e2f2 !important;
+      }
     </style>
   </head>
 
@@ -562,6 +619,22 @@
         <div class="date-badge">
           <i class="fa-regular fa-calendar-check"></i>
           <span id="currentDateDisplay">Date</span>
+        </div>
+      </div>
+
+      <!-- System Maintenance & Backup Card (FR-018) -->
+      <div class="card" style="margin-bottom: 25px;">
+        <div class="header">
+          <h2><i class="fa-solid fa-server"></i> System Maintenance & Backup</h2>
+        </div>
+        <div style="background: #f8f7fb; padding: 20px; border-radius: 12px; border: 1px solid #e2ddeb; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+          <div>
+            <h3 style="font-size: 15px; color: #17142b; margin-bottom: 5px; font-weight: 700;">Full System Backup</h3>
+            <p style="font-size: 13px; color: #6b6678; margin: 0;">Download a secure ZIP archive containing all system database records and physical file uploads.</p>
+          </div>
+          <button onclick="triggerSystemBackup()" style="background: #16805b; color: white; border: none; padding: 14px 24px; border-radius: 12px; font-weight: bold; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; box-shadow: 0 4px 15px rgba(22, 128, 91, 0.2);">
+            <i class="fa-solid fa-cloud-arrow-down"></i> Generate Backup
+          </button>
         </div>
       </div>
 
@@ -813,6 +886,39 @@
             userDisplayEl.innerHTML = `@${data.userRole} <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 5px;"></i>`;
           }
       }).catch(error => console.error("Error fetching user role:", error));
+
+      async function triggerSystemBackup() {
+      try {
+        Swal.fire({
+          title: 'Generating Backup...',
+          text: 'Please wait while we package database records and repository files.',
+          allowOutsideClick: false,
+          didOpen: () => { Swal.showLoading(); }
+        });
+
+        const response = await fetch('/api/backup');
+        if (!response.ok) throw new Error('Backup failed on server.');
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        
+        // Extract filename from header or generate default
+        const dateStr = new Date().toISOString().split('T')[0];
+        a.download = `ISS_DS_Full_Backup_${dateStr}.zip`;
+        
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+
+        Swal.fire('Success!', 'System backup downloaded successfully.', 'success');
+      } catch (error) {
+        console.error(error);
+        Swal.fire('Error', 'Failed to generate system backup.', 'error');
+      }
+    }
     </script>
   </body>
 </html>
