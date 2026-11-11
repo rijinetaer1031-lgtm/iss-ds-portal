@@ -118,7 +118,7 @@ app.get('/recycle-bin', requireAuth, (req, res) => {
 });
 
 app.get('/admin', requireAuth, (req, res) => {
-    if (req.session.role !== 'Administrator') {
+    if (req.session.role !== 'Administrator' && req.session.role !== 'President') {
         return res.redirect('/dashboard?error=admin_denied');
     }
     const pagePath = fs.existsSync(path.join(__dirname, 'public', 'admin.html'))
@@ -126,10 +126,6 @@ app.get('/admin', requireAuth, (req, res) => {
         : path.join(__dirname, 'admin.html');
     res.sendFile(pagePath);
 });
-
-/* ==========================================================================
-   AUTHENTICATION & USER APIs
-   ========================================================================== */
 
 // API: Login
 app.post('/api/login', async (req, res) => {
@@ -175,9 +171,9 @@ app.get('/api/current-user', (req, res) => {
     }
 });
 
-// API: User Management (Admin Only)
+// API: User Management (Admin & President)
 app.get('/api/users', requireAuth, async (req, res) => {
-    if (req.session.role !== 'Administrator') return res.status(403).send('Access Denied');
+    if (req.session.role !== 'Administrator' && req.session.role !== 'President') return res.status(403).send('Access Denied');
     try {
         const result = await pool.query('SELECT id, full_name, username, access_level, status, date_created FROM UserAccount ORDER BY date_created DESC');
         res.json(result.rows);
@@ -188,7 +184,7 @@ app.get('/api/users', requireAuth, async (req, res) => {
 });
 
 app.post('/api/users', requireAuth, async (req, res) => {
-    if (req.session.role !== 'Administrator') return res.status(403).send('Access Denied');
+    if (req.session.role !== 'Administrator' && req.session.role !== 'President') return res.status(403).send('Access Denied');
     
     const { full_name, username, password, access_level } = req.body;
     if (!full_name || !username || !password || !access_level) return res.status(400).send('Missing required fields.');
@@ -219,7 +215,7 @@ app.post('/api/users', requireAuth, async (req, res) => {
 });
 
 app.put('/api/users/:id/role', requireAuth, async (req, res) => {
-    if (req.session.role !== 'Administrator') return res.status(403).json({ success: false, error: 'Access Denied' });
+    if (req.session.role !== 'Administrator' && req.session.role !== 'President') return res.status(403).json({ success: false, error: 'Access Denied' });
     const userId = req.params.id;
     const { newRole } = req.body;
     
@@ -233,7 +229,7 @@ app.put('/api/users/:id/role', requireAuth, async (req, res) => {
 });
 
 app.put('/api/users/:id/deactivate', requireAuth, async (req, res) => {
-    if (req.session.role !== 'Administrator') return res.status(403).json({ success: false, error: 'Access Denied' });
+    if (req.session.role !== 'Administrator' && req.session.role !== 'President') return res.status(403).json({ success: false, error: 'Access Denied' });
     const userId = req.params.id;
     
     try {
@@ -246,7 +242,7 @@ app.put('/api/users/:id/deactivate', requireAuth, async (req, res) => {
 });
 
 app.put('/api/users/:id/reset-password', requireAuth, async (req, res) => {
-    if (req.session.role !== 'Administrator') return res.status(403).json({ success: false, error: 'Access Denied' });
+    if (req.session.role !== 'Administrator' && req.session.role !== 'President') return res.status(403).json({ success: false, error: 'Access Denied' });
     const userId = req.params.id;
     const { newPassword } = req.body;
     

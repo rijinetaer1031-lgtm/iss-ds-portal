@@ -25,10 +25,11 @@
       .nav-link { display: flex; align-items: center; gap: 15px; padding: 14px 20px; color: #d9d5ea; text-decoration: none; border-radius: 12px; margin-bottom: 8px; font-size: 14px; transition: all 0.3s ease; }
       .nav-link:hover, .nav-link.active { background: rgba(255, 255, 255, 0.15); color: white; font-weight: 600; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); backdrop-filter: blur(5px); }
       .nav-link i { font-size: 18px; width: 20px; text-align: center; }
-      .sidebar-profile { padding: 20px; margin: auto 15px 20px 15px; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; display: flex; align-items: center; justify-content: space-between; backdrop-filter: blur(10px); }
-      .profile-info { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+      .sidebar-profile { padding: 20px; margin: auto 15px 20px 15px; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; display: flex; flex-direction: column; align-items: stretch; gap: 16px; justify-content: center; backdrop-filter: blur(10px); }
+      .profile-info { display: flex; align-items: center; gap: 12px; font-size: 13px; width: 100%; }
       .profile-info i { font-size: 28px; color: #34d399; }
-      .logout-btn { color: #f08a9b; text-decoration: none; font-size: 14px; padding: 8px; border-radius: 8px; transition: 0.2s; }
+      .logout-btn { color: #f08a9b; text-decoration: none; font-size: 13px; font-weight: 600; padding: 10px; border-radius: 10px; background: rgba(240, 138, 155, 0.1); display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; width: 100%; }
+      .logout-btn:hover { background: rgba(240, 138, 155, 0.2); color: #ffb3c1; }
 
       .open-btn {
         position: fixed; top: 25px; left: 25px; font-size: 20px; color: #7c5cff; cursor: pointer; display: none;
@@ -72,52 +73,19 @@
 
       .date-pill { display: inline-flex; align-items: center; gap: 6px; background: #f5f3fa; color: #5b43c7; padding: 6px 12px; border-radius: 8px; font-weight: 600; font-size: 12.5px; border: 1px solid #e7e2f2; }
       .action-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 6px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: #eee9ff; color: #5b43c7; }
-      /* Global Mobile Responsiveness */
+      
       @media (max-width: 768px) {
-        .sidebar {
-          transform: translateX(-100%);
-        }
-        .sidebar:not(.closed) {
-          transform: translateX(0);
-        }
-        .main-content {
-          margin-left: 0 !important;
-          width: 100% !important;
-          padding: 20px 18px !important;
-        }
-        .open-btn {
-          display: flex !important;
-          align-items: center;
-          justify-content: center;
-        }
-        .welcome-banner {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 15px;
-          padding: 25px 20px;
-        }
-        .action-bar {
-          flex-direction: column;
-          align-items: stretch;
-        }
-        .action-btn-custom {
-          justify-content: center;
-        }
-        .doc-list-item {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 15px;
-        }
-        .doc-actions-wrapper {
-          width: 100%;
-          justify-content: space-between;
-        }
+        .sidebar { transform: translateX(-100%); }
+        .sidebar:not(.closed) { transform: translateX(0); }
+        .main-content { margin-left: 0 !important; width: 100% !important; padding: 20px 18px !important; }
+        .open-btn { display: flex !important; align-items: center; justify-content: center; }
+        .welcome-banner { flex-direction: column; align-items: flex-start; gap: 15px; padding: 25px 20px; }
       }
       
       .swal2-popup.swal2-custom-popup {
         width: 360px !important;
-        max-width: 90vw !important; /* Prevents edge-clipping on small mobile screens */
-        padding: 25px 20px !important; /* Reduces vertical white space */
+        max-width: 90vw !important;
+        padding: 25px 20px !important;
         border-radius: 28px !important;
         font-family: 'Inter', sans-serif !important;
         box-shadow: 0 20px 40px rgba(23, 20, 43, 0.12) !important;
@@ -146,12 +114,14 @@
           <i class="fa-solid fa-circle-user"></i>
           <div>
             <div style="font-size: 11px; color: #a7f3d0; margin-bottom: 2px;">ISS-DS Portal</div>
-            <div style="font-weight: bold; color: white;" id="userDisplay">User <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 5px"></i></div>
+            <div style="font-weight: bold; color: white;" id="userDisplay">User</div>
           </div>
         </div>
-        <a href="/logout" class="logout-btn" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></a>
+        <a href="/logout" class="logout-btn" title="Logout">
+          <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </a>
       </div>
-    </div>
+    </div> 
 
     <!-- Main Content -->
     <div class="main-content">
@@ -273,12 +243,17 @@
       document.getElementById("closeSidebar").addEventListener("click", () => { sidebar.classList.add("closed"); mainContent.classList.add("expanded"); });
       document.getElementById("openSidebar").addEventListener("click", () => { sidebar.classList.remove("closed"); mainContent.classList.remove("expanded"); });
 
-      fetch("/api/documents").then(response => response.json()).then(data => {
+      // Fetch current user's role for the sidebar profile cleanly
+      fetch("/api/current-user")
+        .then((response) => response.json())
+        .then((data) => {
           const userDisplayEl = document.getElementById("userDisplay");
-          if (userDisplayEl && data.userRole) {
-            userDisplayEl.innerHTML = `@${data.userRole} <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 5px;"></i>`;
+          const userRole = data.role || data.access_level || "User";
+          if (userDisplayEl) {
+            userDisplayEl.innerText = `@${userRole}`;
           }
-      }).catch(error => console.error("Error fetching user role:", error));
+        })
+        .catch((error) => console.error("Error fetching user role:", error));
     </script>
   </body>
 </html>

@@ -25,10 +25,10 @@
       .nav-link { display: flex; align-items: center; gap: 15px; padding: 14px 20px; color: #d9d5ea; text-decoration: none; border-radius: 12px; margin-bottom: 8px; font-size: 14px; transition: all 0.3s ease; }
       .nav-link:hover, .nav-link.active { background: rgba(255, 255, 255, 0.15); color: white; font-weight: 600; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); backdrop-filter: blur(5px); }
       .nav-link i { font-size: 18px; width: 20px; text-align: center; }
-      .sidebar-profile { padding: 20px; margin: auto 15px 20px 15px; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; display: flex; align-items: center; justify-content: space-between; backdrop-filter: blur(10px); }
-      .profile-info { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+      .sidebar-profile { padding: 20px; margin: auto 15px 20px 15px; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; display: flex; flex-direction: column; align-items: stretch; gap: 16px; justify-content: center; backdrop-filter: blur(10px); }
+      .profile-info { display: flex; align-items: center; gap: 12px; font-size: 13px; width: 100%; }
       .profile-info i { font-size: 28px; color: #34d399; }
-      .logout-btn { color: #f08a9b; text-decoration: none; font-size: 14px; padding: 8px; border-radius: 8px; transition: 0.2s; }
+      .logout-btn { color: #f08a9b; text-decoration: none; font-size: 13px; font-weight: 600; padding: 10px; border-radius: 10px; background: rgba(240, 138, 155, 0.1); display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; width: 100%; }
       .logout-btn:hover { background: rgba(240, 138, 155, 0.2); color: #ffb3c1; }
       
       .open-btn {
@@ -251,10 +251,12 @@
           <i class="fa-solid fa-circle-user"></i>
           <div>
             <div style="font-size: 11px; color: #a7f3d0; margin-bottom: 2px;">ISS-DS Portal</div>
-            <div style="font-weight: bold; color: white;" id="userDisplay">User <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 5px"></i></div>
+            <div style="font-weight: bold; color: white;" id="userDisplay">User</div>
           </div>
         </div>
-        <a href="/logout" class="logout-btn" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></a>
+        <a href="/logout" class="logout-btn" title="Logout">
+          <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </a>
       </div>
     </div>
 
@@ -879,6 +881,7 @@
           }
         }
       }
+      const urlParams = new URLSearchParams(window.location.search);
     </script>
   </body>
 </html>

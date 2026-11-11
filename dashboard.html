@@ -13,88 +13,28 @@
       body { background: #f4f2f9; display: flex; min-height: 100vh; color: #17142b; overflow-x: hidden; }
 
       /* Unified Sidebar */
-      .sidebar { 
-        width: 260px; 
-        background: linear-gradient(180deg, #23b1ca 0%, #331780 100%); 
-        color: white; 
-        display: flex; 
-        flex-direction: column; 
-        position: fixed; 
-        height: 100vh; /* Keeps it full height */
-        border-top-right-radius: 24px; 
-        border-bottom-right-radius: 24px; 
-        padding: 20px 0; 
-        z-index: 10; 
-        transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); 
-        box-shadow: 5px 0 25px rgba(51, 23, 128, 0.15);
-        overflow-y: auto; /* Allows scrolling inside the sidebar if the screen is short */
-      }
-      
-      /* Optional: Hide scrollbar for a cleaner look */
-      .sidebar::-webkit-scrollbar {
-        display: none;
-      }
+      .sidebar { width: 260px; background: linear-gradient(180deg, #23b1ca 0%, #331780 100%); color: white; display: flex; flex-direction: column; position: fixed; height: 100vh; border-top-right-radius: 24px; border-bottom-right-radius: 24px; padding: 20px 0; z-index: 10; transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 5px 0 25px rgba(51, 23, 128, 0.15); overflow-y: auto; }
+      .sidebar::-webkit-scrollbar { display: none; }
       .sidebar.closed { transform: translateX(-100%); }
       .logo-container { text-align: center; margin-bottom: 20px; padding: 30px 20px 0 20px; position: relative; }
       .sidebar-logo { width: 140px; height: auto; background-color: transparent; padding: 0; filter: drop-shadow(0px 8px 12px rgba(124, 92, 255, 0.4)); margin-bottom: 10px; transition: 0.3s; }
       .sidebar-logo:hover { transform: scale(1.05); }
-      .nav-menu { 
-        display: flex; 
-        flex-direction: column; 
-        padding: 0 15px; 
-        flex-grow: 1; /* Pushes the profile to the bottom */
-        margin-top: 10px;
-        margin-bottom: 20px; /* Ensures space above the profile box */
-      }
+      .close-btn { position: absolute; top: 20px; left: 20px; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; transition: all 0.2s ease; border: none; z-index: 100; color: white; background: rgba(255, 255, 255, 0.1); }
+      .close-btn:hover { transform: scale(1.1); background: rgba(255, 255, 255, 0.2); }
+      .nav-menu { display: flex; flex-direction: column; padding: 0 15px; flex-grow: 1; margin-top: 10px; margin-bottom: 20px; }
       .nav-link { display: flex; align-items: center; gap: 15px; padding: 14px 20px; color: #d9d5ea; text-decoration: none; border-radius: 12px; margin-bottom: 8px; font-size: 14px; transition: all 0.3s ease; }
       .nav-link:hover, .nav-link.active { background: rgba(255, 255, 255, 0.15); color: white; font-weight: 600; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); backdrop-filter: blur(5px); }
       .nav-link i { font-size: 18px; width: 20px; text-align: center; }
-      .sidebar-profile { 
-        padding: 20px; 
-        margin: auto 15px 20px 15px; /* 'auto' pushes it down, '20px' keeps it off the bottom edge */
-        background: rgba(0, 0, 0, 0.15); 
-        border: 1px solid rgba(255, 255, 255, 0.1); 
-        border-radius: 16px; 
-        display: flex; 
-        align-items: center; 
-        justify-content: space-between; 
-        backdrop-filter: blur(10px); 
-      }
-      .profile-info { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+      .sidebar-profile { padding: 20px; margin: auto 15px 20px 15px; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; display: flex; flex-direction: column; align-items: stretch; gap: 16px; justify-content: center; backdrop-filter: blur(10px); }
+      .profile-info { display: flex; align-items: center; gap: 12px; font-size: 13px; width: 100%; }
       .profile-info i { font-size: 28px; color: #34d399; }
-      .logout-btn { color: #f08a9b; text-decoration: none; font-size: 14px; padding: 8px; border-radius: 8px; transition: 0.2s; }
+      .logout-btn { color: #f08a9b; text-decoration: none; font-size: 13px; font-weight: 600; padding: 10px; border-radius: 10px; background: rgba(240, 138, 155, 0.1); display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; width: 100%; }
       .logout-btn:hover { background: rgba(240, 138, 155, 0.2); color: #ffb3c1; }
       .close-btn { position: absolute; top: 20px; left: 20px; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; transition: all 0.2s ease; border: none; z-index: 100; color: white; background: rgba(255, 255, 255, 0.1); }
       .close-btn:hover { transform: scale(1.1); background: rgba(255, 255, 255, 0.2); }
-      .open-btn {
-        position: fixed;
-        top: 25px;
-        left: 25px;
-        font-size: 20px;
-        color: #7c5cff;
-        cursor: pointer;
-        display: none;
-        background: #ffffff;
-        border: 1px solid #e7e2f2;
-        padding: 12px 15px;
-        border-radius: 50px;
-        box-shadow: 0 4px 15px rgba(23, 20, 43, 0.08);
-        transition: 0.2s;
-        z-index: 1000;
-      }
-
-      .open-btn:hover {
-        background: #f0eef5;
-        color: #5b43c7;
-        transform: scale(1.05);
-      }
-
-      /* Ensure it only shows when the sidebar is collapsed/expanded */
-      .main-content.expanded .open-btn {
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-      }
+      .open-btn { font-size: 24px; color: #7c5cff; cursor: pointer; display: none; margin-bottom: 20px; transition: 0.2s; background: white; width: 45px; height: 45px; border-radius: 50%; box-shadow: 0 4px 15px rgba(124, 92, 255, 0.2); text-align: center; line-height: 45px; }
+      .open-btn:hover { color: #5b43c7; transform: scale(1.05); }
+      .main-content.expanded .open-btn { display: block; }
 
       /* Main Content */
       .main-content { margin-left: 260px; flex-grow: 1; padding: 30px 45px; display: flex; flex-direction: column; gap: 25px; width: calc(100% - 260px); transition: margin-left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); position: relative; }
@@ -200,58 +140,6 @@
       .btn-confirm:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(124, 92, 255, 0.4); }
       .viewer-modal { max-width: 1000px !important; width: 95%; height: 90vh; display: flex; flex-direction: column; padding: 25px; }
       .viewer-iframe { flex-grow: 1; width: 100%; border: 2px solid #e7e2f2; border-radius: 16px; margin-bottom: 20px; background: #f5f3fa; }
-      /* Global Mobile Responsiveness */
-      @media (max-width: 768px) {
-        .sidebar {
-          transform: translateX(-100%);
-        }
-        .sidebar:not(.closed) {
-          transform: translateX(0);
-        }
-        .main-content {
-          margin-left: 0 !important;
-          width: 100% !important;
-          padding: 20px 18px !important;
-        }
-        .open-btn {
-          display: flex !important;
-          align-items: center;
-          justify-content: center;
-        }
-        .welcome-banner {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 15px;
-          padding: 25px 20px;
-        }
-        .action-bar {
-          flex-direction: column;
-          align-items: stretch;
-        }
-        .action-btn-custom {
-          justify-content: center;
-        }
-        .doc-list-item {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 15px;
-        }
-        .doc-actions-wrapper {
-          width: 100%;
-          justify-content: space-between;
-        }
-      }
-
-      /* Compact, Mobile-Friendly SweetAlert Custom Popup */
-      .swal2-popup.swal2-custom-popup {
-        width: 360px !important;
-        max-width: 90vw !important; /* Prevents edge-clipping on small mobile screens */
-        padding: 25px 20px !important; /* Reduces vertical white space */
-        border-radius: 28px !important;
-        font-family: 'Inter', sans-serif !important;
-        box-shadow: 0 20px 40px rgba(23, 20, 43, 0.12) !important;
-        border: 1px solid #e7e2f2 !important;
-      }
     </style>
   </head>
   <body>
@@ -274,10 +162,12 @@
           <i class="fa-solid fa-circle-user"></i>
           <div>
             <div style="font-size: 11px; color: #a7f3d0; margin-bottom: 2px;">ISS-DS Portal</div>
-            <div style="font-weight: bold; color: white;" id="userDisplay">User <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 5px"></i></div>
+            <div style="font-weight: bold; color: white;" id="userDisplay">User</div>
           </div>
         </div>
-        <a href="/logout" class="logout-btn" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></a>
+        <a href="/logout" class="logout-btn" title="Logout">
+          <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </a>
       </div>
     </div>
 
@@ -350,16 +240,10 @@
       </div>
 
       <div class="section-header">
-        <h2><i class="fa-solid fa-fire" style="color: #f59e0b;"></i> Frequently Accessed</h2>
-      </div>
-      <div class="docs-grid" id="frequentGrid" style="margin-bottom: 25px;">
-        <!-- Populated by JS -->
-      </div>
-
-      <div class="section-header">
         <h2><i class="fa-solid fa-bolt"></i> Recent Activity</h2>
         <a href="/documents" class="view-all">Browse Library &rarr;</a>
       </div>
+
       <div class="docs-grid" id="documentGrid">
         <!-- Populated by JS -->
       </div>
@@ -434,50 +318,8 @@
           document.getElementById("statEvents").innerText = allFetchedDocuments.filter(doc => doc.category === "Events").length;
 
           renderDocumentCards(allFetchedDocuments);
-
-          fetchFrequentDocuments();
         } catch (error) {
           console.error("Error fetching documents:", error);
-        }
-      }
-      async function fetchFrequentDocuments() {
-        try {
-          const response = await fetch("/api/documents/frequent");
-          const data = await response.json();
-          const frequentContainer = document.getElementById("frequentGrid");
-          frequentContainer.innerHTML = "";
-
-          if (data.documents.length === 0) {
-            frequentContainer.innerHTML = '<div style="grid-column: 1 / -1; color: #918ba1; padding: 20px;">No access data available yet.</div>';
-            return;
-          }
-
-          data.documents.forEach((doc) => {
-            const filePath = `/repository/${doc.category}/${doc.standardized_file_name}`;
-            const fileExt = doc.standardized_file_name.split(".").pop().toLowerCase();
-
-            let iconClass = "fa-file-lines"; let iconColor = "icon-doc"; let borderCol = "#7c5cff";
-            if (fileExt === "pdf") { iconClass = "fa-file-pdf"; iconColor = "icon-pdf"; borderCol = "#f59e0b"; }
-            if (["xls", "xlsx"].includes(fileExt)) { iconClass = "fa-file-excel"; iconColor = "icon-xls"; borderCol = "#22c55e"; }
-
-            const card = document.createElement("div");
-            card.className = "doc-card";
-            card.style.borderBottom = `4px solid ${borderCol}`;
-
-            card.innerHTML = `
-                  <div class="doc-header">
-                      <span class="doc-tag" style="background:#fff3cd; color:#856404;"><i class="fa-solid fa-eye"></i> ${doc.view_count || 0} Views</span>
-                  </div>
-                  <div class="doc-icon ${iconColor}"><i class="fa-solid ${iconClass}"></i></div>
-                  <div class="doc-title" title="${doc.standardized_file_name}">${doc.standardized_file_name}</div>
-                  <div class="doc-actions">
-                      <button onclick="openDocumentViewer('${filePath}', '${doc.standardized_file_name}', ${doc.id})" class="btn-view" style="width: 100%;">Open Document</button>
-                  </div>
-              `;
-            frequentContainer.appendChild(card);
-          });
-        } catch (error) {
-          console.error("Error fetching frequent documents:", error);
         }
       }
 
@@ -566,7 +408,7 @@
       const approvalModal = document.getElementById("approvalModal");
       const modalConfirmBtn = document.getElementById("modalConfirmBtn");
       const modalCancelBtn = document.getElementById("modalCancelBtn");
-      
+
       function approveDocument(docId) {
         pendingDocId = docId;
         document.getElementById("modalIcon").className = "modal-icon";

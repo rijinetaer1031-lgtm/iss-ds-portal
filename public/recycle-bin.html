@@ -23,22 +23,7 @@
       }
 
       /* Unified Sidebar */
-      .sidebar {
-        width: 260px;
-        background: linear-gradient(180deg, #23b1ca 0%, #331780 100%);
-        color: white;
-        display: flex;
-        flex-direction: column;
-        position: fixed;
-        height: 100vh;
-        border-top-right-radius: 24px;
-        border-bottom-right-radius: 24px;
-        padding: 20px 0;
-        z-index: 10;
-        transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-        box-shadow: 5px 0 25px rgba(51, 23, 128, 0.15);
-        overflow-y: auto;
-      }
+      .sidebar { width: 260px; background: linear-gradient(180deg, #23b1ca 0%, #331780 100%); color: white; display: flex; flex-direction: column; position: fixed; height: 100vh; border-top-right-radius: 24px; border-bottom-right-radius: 24px; padding: 20px 0; z-index: 10; transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 5px 0 25px rgba(51, 23, 128, 0.15); overflow-y: auto; }
       .sidebar::-webkit-scrollbar { display: none; }
       .sidebar.closed { transform: translateX(-100%); }
       .logo-container { text-align: center; margin-bottom: 20px; padding: 30px 20px 0 20px; position: relative; }
@@ -46,16 +31,14 @@
       .sidebar-logo:hover { transform: scale(1.05); }
       .close-btn { position: absolute; top: 20px; left: 20px; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; transition: all 0.2s ease; border: none; z-index: 100; color: white; background: rgba(255, 255, 255, 0.1); }
       .close-btn:hover { transform: scale(1.1); background: rgba(255, 255, 255, 0.2); }
-
       .nav-menu { display: flex; flex-direction: column; padding: 0 15px; flex-grow: 1; margin-top: 10px; margin-bottom: 20px; }
       .nav-link { display: flex; align-items: center; gap: 15px; padding: 14px 20px; color: #d9d5ea; text-decoration: none; border-radius: 12px; margin-bottom: 8px; font-size: 14px; transition: all 0.3s ease; }
-      .nav-link:hover, .nav-link.active { background: rgba(255, 255, 255, 0.15); color: #ffffff; font-weight: 600; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); backdrop-filter: blur(5px); }
+      .nav-link:hover, .nav-link.active { background: rgba(255, 255, 255, 0.15); color: white; font-weight: 600; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); backdrop-filter: blur(5px); }
       .nav-link i { font-size: 18px; width: 20px; text-align: center; }
-
-      .sidebar-profile { padding: 20px; margin: auto 15px 20px 15px; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; display: flex; align-items: center; justify-content: space-between; backdrop-filter: blur(10px); }
-      .profile-info { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+      .sidebar-profile { padding: 20px; margin: auto 15px 20px 15px; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; display: flex; flex-direction: column; align-items: stretch; gap: 16px; justify-content: center; backdrop-filter: blur(10px); }
+      .profile-info { display: flex; align-items: center; gap: 12px; font-size: 13px; width: 100%; }
       .profile-info i { font-size: 28px; color: #34d399; }
-      .logout-btn { color: #f08a9b; text-decoration: none; font-size: 14px; padding: 8px; border-radius: 8px; transition: 0.2s; }
+      .logout-btn { color: #f08a9b; text-decoration: none; font-size: 13px; font-weight: 600; padding: 10px; border-radius: 10px; background: rgba(240, 138, 155, 0.1); display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; width: 100%; }
       .logout-btn:hover { background: rgba(240, 138, 155, 0.2); color: #ffb3c1; }
 
       .open-btn { position: fixed; top: 25px; left: 25px; font-size: 20px; color: #7c5cff; cursor: pointer; display: none; background: #ffffff; border: 1px solid #e7e2f2; padding: 12px 15px; border-radius: 50px; box-shadow: 0 4px 15px rgba(23, 20, 43, 0.08); transition: 0.2s; z-index: 1000; }
@@ -114,7 +97,6 @@
         <i class="fa-solid fa-bars close-btn" id="closeSidebar" title="Collapse Menu"></i>
         <img src="/nobglogo.png" alt="CSUISS Logo" class="sidebar-logo" />
       </div>
-
       <div class="nav-menu">
         <a href="/dashboard" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a>
         <a href="/upload" class="nav-link"><i class="fa-solid fa-cloud-arrow-up"></i> Upload Document</a>
@@ -123,16 +105,17 @@
         <a href="/recycle-bin" class="nav-link active"><i class="fa-solid fa-trash-can-arrow-up"></i> Recycle Bin</a>
         <a href="/admin" class="nav-link"><i class="fa-solid fa-gear"></i> Admin Panel</a>
       </div>
-
       <div class="sidebar-profile">
         <div class="profile-info">
           <i class="fa-solid fa-circle-user"></i>
           <div>
             <div style="font-size: 11px; color: #a7f3d0; margin-bottom: 2px;">ISS-DS Portal</div>
-            <div style="font-weight: bold; color: white;" id="userDisplay">User <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 5px"></i></div>
+            <div style="font-weight: bold; color: white;" id="userDisplay">User</div>
           </div>
         </div>
-        <a href="/logout" class="logout-btn" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></a>
+        <a href="/logout" class="logout-btn" title="Logout">
+          <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </a>
       </div>
     </div>
 
