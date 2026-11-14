@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard · ISS-DS</title>
+  <meta name="theme-color" content="#4b2fd1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/app.css?v=4" />
+</head>
+<body data-page="dashboard" data-title="Dashboard" data-sub="Loading your repository…">
+  <main id="content" class="stack">
+    <div id="heroActions" hidden>
+      <a class="btn btn-light" href="/upload"><i class="fa-solid fa-cloud-arrow-up"></i> Upload a document</a>
+      <a class="btn btn-glass" href="/documents"><i class="fa-solid fa-folder-tree"></i> Browse folders</a>
+    </div>
+
+    <!-- Stats: one tile per document type (dynamic), clicking filters the list below -->
+    <section class="bento" id="tiles" aria-label="Repository summary"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></section>
+
+    <div class="searchbar" role="search">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input id="q" type="search" placeholder="Search by title, file name, event or type…" aria-label="Search documents" autocomplete="off" />
+      <select id="typeFilter" aria-label="Filter by document type"><option value="">All types</option></select>
+    </div>
+
+    <section class="stack" style="gap:16px">
+      <div class="section-title"><h2 id="listTitle">Recent documents</h2><span class="muted" id="listCount"></span></div>
+      <div class="doc-grid" id="grid" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script src="/js/app.js?v=4"></script>
+  <script src="/js/docs.js?v=4"></script>
+  <script>
+    (function () {
+      const { esc, $ } = ISS;
+      let docs = [], role = '', view = { q: '', type: '', pending: false };
+      const grid = $('#grid'), tiles = $('#tiles');
+
+
+      /* ---- rendering ---- */
+      function renderTiles() {
+        const types = [...new Set(docs.map((d) => d.category))];
+        const pending = docs.filter((d) => d.approval_status !== 'Approved').length;
+        const t = (key, label, n, icon, tone, extra = '') =>
+          `<button class="tile ${tone} ${extra}" data-tile="${esc(key)}" aria-pressed="${isActive(key)}"><div class="ico"><i class="fa-solid ${icon}"></i></div><div><b>${n}</b><br><span>${esc(label)}</span></div></button>`;
+        tiles.innerHTML =
+          t('__all', 'Total files', docs.length, 'fa-layer-group', 't-violet', 'dark') +
+          t('__pending', 'Awaiting approval', pending, 'fa-hourglass-half', 't-amber') +
+          types.map((c) => t(c, c, docs.filter((d) => d.category === c).length, ISS.catIcon(c), ISS.toneFor(c))).join('');
+      }
+      const isActive = (key) => key === '__all' ? (!view.type && !view.pending) : key === '__pending' ? view.pending : view.type === key;
+
+      function renderList() {
+        const q = view.q.trim().toLowerCase();
+        const list = docs.filter((d) =>
+          (!view.type || d.category === view.type) &&
+          (!view.pending || d.approval_status !== 'Approved') &&
+          (!q || `${d.title} ${d.standardized_file_name} ${d.category} ${d.subfolder || ''}`.toLowerCase().includes(q)));
+        const filtered = q || view.type || view.pending;
+        $('#listTitle').textContent = filtered ? 'Matching documents' : 'Recent documents';
+        $('#listCount').textContent = `${list.length} file${list.length === 1 ? '' : 's'}`;
+        grid.innerHTML = list.length
+          ? list.slice(0, 60).map((d, i) => ISS.docs.card(d, i, role)).join('')
+          : `<div class="empty" style="grid-column:1/-1"><i class="fa-regular fa-folder-open"></i><strong>${docs.length ? 'No documents match' : 'Nothing here yet'}</strong>${docs.length ? 'Try another word or clear the filters.' : 'Upload your first document to get started.'}</div>`;
+      }
+
+      function renderAll() {
+        renderTiles(); renderList();
+        const select = $('#typeFilter'), types = [...new Set(docs.map((d) => d.category))];
+        select.innerHTML = '<option value="">All types</option>' + types.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+        select.value = view.type;
+      }
+
+      /* ---- events ---- */
+      tiles.addEventListener('click', (e) => {
+        const tile = e.target.closest('[data-tile]'); if (!tile) return;
+        const k = tile.dataset.tile;
+        view.pending = k === '__pending';
+        view.type = (k === '__all' || k === '__pending') ? '' : k;
+        $('#typeFilter').value = view.type;
+        renderTiles(); renderList();
+      });
+      $('#q').addEventListener('input', ISS.debounce((e) => { view.q = e.target.value; renderList(); }, 120));
+      $('#typeFilter').addEventListener('change', (e) => { view.type = e.target.value; view.pending = false; renderTiles(); renderList(); });
+
+      ISS.docs.bind(grid, (id) => docs.find((d) => d.id === id), {
+        changed: (doc) => { doc.approval_status = 'Approved'; renderAll(); }, // update in place — no page reload
+      });
+
+      /* ---- load ---- */
+      ISS.ready.then(async (me) => {
+        role = me.role;
+        ISS.setHero({ title: `Welcome back, @${me.role}`, sub: 'Here is what is happening in your document repository.' });
+        try {
+          const data = await ISS.api('/api/documents');
+          docs = data.documents;
+          const pending = docs.filter((d) => d.approval_status !== 'Approved').length;
+          ISS.setHero({ sub: pending ? `${pending} document${pending === 1 ? ' is' : 's are'} waiting for approval.` : 'Everything is approved and up to date.' });
+          renderAll();
+        } catch (err) {
+          tiles.innerHTML = ''; grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><i class="fa-solid fa-triangle-exclamation"></i><strong>Could not load documents</strong>${esc(err.message)}</div>`;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

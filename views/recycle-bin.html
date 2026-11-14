@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#4b2fd1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/app.css?v=4" />
+  <title>Recycle Bin · ISS-DS</title>
+</head>
+<body data-page="recycle" data-title="Recycle bin" data-sub="Restore deleted documents and events. Only Administrators can delete them for good.">
+  <main id="content" class="stack">
+    <div class="tabs" role="tablist" aria-label="Deleted items">
+      <button role="tab" id="tabDocs" aria-selected="true">Documents <span class="badge badge-violet" id="nDocs">0</span></button>
+      <button role="tab" id="tabEvents" aria-selected="false">Events <span class="badge badge-violet" id="nEvents">0</span></button>
+      <button role="tab" id="tabTypes" aria-selected="false">Types <span class="badge badge-violet" id="nTypes">0</span></button>
+    </div>
+    <section id="list" class="doc-list" aria-live="polite"><div class="skeleton"></div><div class="skeleton"></div></section>
+  </main>
+
+  <script src="/js/app.js?v=4"></script>
+  <script>
+    (function () {
+      const { $, esc } = ISS;
+      let role = '', tab = 'docs', docs = [], folders = [], types = [];
+      const list = $('#list');
+      const when = (iso) => (iso ? new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '');
+
+      function actions(kind, id) {
+        return `<button class="btn btn-ghost btn-sm" data-act="restore" data-kind="${kind}" data-id="${id}"><i class="fa-solid fa-rotate-left"></i><span>Restore</span></button>` +
+          (role === 'Administrator' ? `<button class="btn btn-ghost btn-sm" data-act="purge" data-kind="${kind}" data-id="${id}" style="color:var(--rose)"><i class="fa-solid fa-fire"></i><span>Delete forever</span></button>` : '');
+      }
+
+      function render() {
+        $('#nDocs').textContent = docs.length; $('#nEvents').textContent = folders.length; $('#nTypes').textContent = types.length;
+        ['Docs', 'Events', 'Types'].forEach((t) => $('#tab' + t).setAttribute('aria-selected', tab === t.toLowerCase()));
+        const empty = '<div class="empty"><i class="fa-solid fa-leaf"></i><strong>Nothing here</strong>Deleted items will show up in this list.</div>';
+        if (tab === 'docs') {
+          list.innerHTML = docs.length ? docs.map((d) => {
+            const m = ISS.fileMeta(d.standardized_file_name);
+            return `<article class="doc ${m.cls}"><div class="doc-ico"><i class="fa-solid ${m.icon}"></i></div>
+              <div class="doc-main"><h4>${esc(d.title)}</h4><div class="doc-meta"><span><i class="fa-solid fa-layer-group"></i>${esc(d.category)}</span><span><i class="fa-regular fa-calendar"></i>${ISS.fmtDate(d.document_date)}</span><span><i class="fa-solid fa-code-branch"></i>v${d.version_number}</span></div></div>
+              <div class="doc-actions">${actions('doc', d.id)}</div></article>`;
+          }).join('') : empty;
+        } else if (tab === 'types') {
+          list.innerHTML = types.length ? types.map((t) =>
+            `<article class="doc ${ISS.toneFor(t.name)}" style="--ft:var(--tone)"><div class="doc-ico"><i class="fa-solid ${ISS.catIcon(t.name)}"></i></div>
+              <div class="doc-main"><h4>${esc(t.name)}</h4><div class="doc-meta"><span><i class="fa-solid fa-file"></i>${t.doc_count} document${t.doc_count === 1 ? '' : 's'}</span><span><i class="fa-regular fa-trash-can"></i>Deleted ${when(t.deleted_at)}</span></div></div>
+              <div class="doc-actions">${actions('type', t.name)}</div></article>`).join('') : empty;
+        } else {
+          list.innerHTML = folders.length ? folders.map((f) =>
+            `<article class="doc ${''}" style="--ft:var(--amber)"><div class="doc-ico"><i class="fa-solid fa-ticket"></i></div>
+              <div class="doc-main"><h4>${esc(f.name)}</h4><div class="doc-meta"><span><i class="fa-solid fa-layer-group"></i>${esc(f.category)}</span><span><i class="fa-regular fa-trash-can"></i>Deleted ${when(f.deleted_at)}</span></div></div>
+              <div class="doc-actions">${actions('event', f.id)}</div></article>`).join('') : empty;
+        }
+      }
+
+      async function load() {
+        const [d, f, t] = await Promise.all([ISS.api('/api/documents/deleted'), ISS.api('/api/folders/deleted'), ISS.api('/api/types/deleted')]);
+        docs = d.documents; folders = f.folders; types = t.types; render();
+      }
+      async function run(task, msg) { try { await task(); ISS.toast(msg); await load(); } catch (err) { ISS.toast(err.message, 'err'); } }
+
+      list.addEventListener('click', async (e) => {
+        const b = e.target.closest('[data-act]'); if (!b) return;
+        const { act, kind, id } = b.dataset;
+        const enc = encodeURIComponent(id);
+        const url = { doc: [`/api/documents/restore/${id}`, `/api/documents/permanent-delete/${id}`],
+                      event: [`/api/folders/restore/${id}`, `/api/folders/permanent/${id}`],
+                      type: [`/api/types/restore/${enc}`, `/api/types/permanent/${enc}`] }[kind];
+        if (act === 'restore') return run(() => ISS.api(url[0], { method: 'POST' }), 'Restored.');
+        const item = kind === 'doc' ? docs.find((x) => x.id === +id) : kind === 'event' ? folders.find((x) => x.id === +id) : types.find((x) => x.name === id);
+        const name = item ? (kind === 'doc' ? item.title : item.name) : 'this item';
+        const extra = kind === 'doc' ? 'and all of its versions and files ' : kind === 'type' ? `with its ${item ? item.doc_count : ''} document(s) and files ` : '';
+        const ok = await ISS.confirm({ icon: 'fa-fire', tone: 'danger', title: 'Delete forever?', text: `“${name}” ${extra}will be permanently removed. This cannot be undone.`, confirm: 'Delete forever' });
+        if (ok) run(() => ISS.api(url[1], { method: 'DELETE' }), 'Deleted permanently.');
+      });
+      $('#tabDocs').addEventListener('click', () => { tab = 'docs'; render(); });
+      $('#tabEvents').addEventListener('click', () => { tab = 'events'; render(); });
+      $('#tabTypes').addEventListener('click', () => { tab = 'types'; render(); });
+
+      ISS.ready.then(async (me) => {
+        role = me.role;
+        try { await load(); } catch (err) { list.innerHTML = `<div class="empty"><i class="fa-solid fa-lock"></i><strong>Could not load the bin</strong>${esc(err.message)}</div>`; }
+      });
+    })();
+  </script>
+</body>
+</html>

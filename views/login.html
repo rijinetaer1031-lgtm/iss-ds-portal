@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign in · ISS-DS</title>
+  <meta name="theme-color" content="#4b2fd1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/app.css?v=4" />
+</head>
+<body>
+  <div class="auth">
+    <section class="auth-art">
+      <img src="/nobglogo.png" alt="CSU ISS logo" width="150" height="150" />
+      <div>
+        <h1>Every record, right where it belongs.</h1>
+        <p>The ISS-DS repository keeps reports, memos, records and finance files organised, versioned and approved.</p>
+        <div class="stackfolders" aria-hidden="true">
+          <div class="folder t-violet"><div class="folder__back"></div><div class="folder__sheet"></div><div class="folder__sheet"></div><div class="folder__front"><div class="folder__ico"><i class="fa-solid fa-chart-pie"></i></div><h3>Reports</h3></div></div>
+          <div class="folder t-aqua"><div class="folder__back"></div><div class="folder__sheet"></div><div class="folder__sheet"></div><div class="folder__front"><div class="folder__ico"><i class="fa-solid fa-bullhorn"></i></div><h3>Memos</h3></div></div>
+          <div class="folder t-amber"><div class="folder__back"></div><div class="folder__sheet"></div><div class="folder__sheet"></div><div class="folder__front"><div class="folder__ico"><i class="fa-solid fa-box-archive"></i></div><h3>Records</h3></div></div>
+        </div>
+      </div>
+      <small style="opacity:.7">ISS Document System</small>
+    </section>
+
+    <section class="auth-form">
+      <div class="auth-card">
+        <h2>Sign in</h2>
+        <p>Use the account an administrator created for you.</p>
+
+        <div id="alert" class="alert" role="alert"><i class="fa-solid fa-circle-exclamation"></i><span id="alertText"></span></div>
+
+        <form id="loginForm" class="stack" style="gap:18px" novalidate>
+          <div class="field">
+            <label for="username">Username</label>
+            <div class="input-wrap"><i class="fa-solid fa-user"></i>
+              <input class="input" id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required placeholder="e.g. jdelacruz" /></div>
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <div class="input-wrap"><i class="fa-solid fa-lock"></i>
+              <input class="input" id="password" name="password" type="password" autocomplete="current-password" required placeholder="Your password" style="padding-right:48px" />
+              <button type="button" class="peek" id="peek" aria-label="Show password"><i class="fa-regular fa-eye"></i></button></div>
+          </div>
+          <button class="btn btn-primary btn-block" id="submit" type="submit" style="padding:15px"><span>Sign in</span><i class="fa-solid fa-arrow-right"></i></button>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      const form = document.getElementById('loginForm'), btn = document.getElementById('submit');
+      const alertBox = document.getElementById('alert'), alertText = document.getElementById('alertText');
+      const pw = document.getElementById('password');
+
+      const showError = (msg) => {
+        alertText.textContent = msg;
+        alertBox.classList.remove('show'); void alertBox.offsetWidth; // restart the shake animation
+        alertBox.classList.add('show');
+      };
+
+      document.getElementById('peek').addEventListener('click', (e) => {
+        const show = pw.type === 'password';
+        pw.type = show ? 'text' : 'password';
+        e.currentTarget.innerHTML = `<i class="fa-regular ${show ? 'fa-eye-slash' : 'fa-eye'}"></i>`;
+        e.currentTarget.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      });
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = form.username.value.trim(), password = pw.value;
+        if (!username || !password) return showError('Enter your username and password.');
+
+        alertBox.classList.remove('show');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch spin"></i><span>Signing in…</span>';
+        try {
+          const res = await fetch('/api/login', {
+            method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify({ username, password }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || 'Sign-in failed. Try again.');
+          location.href = data.redirect || '/dashboard';
+        } catch (err) {
+          showError(err.message === 'Failed to fetch' ? 'Cannot reach the server. Check your connection.' : err.message);
+          btn.disabled = false;
+          btn.innerHTML = '<span>Sign in</span><i class="fa-solid fa-arrow-right"></i>';
+          pw.select();
+        }
+      });
+
+      document.getElementById('username').focus();
+    })();
+  </script>
+</body>
+</html>

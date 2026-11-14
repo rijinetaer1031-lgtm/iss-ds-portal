@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Documents · ISS-DS</title>
+  <meta name="theme-color" content="#4b2fd1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/app.css?v=4" />
+</head>
+<body data-page="documents" data-title="My Documents" data-sub="Open a folder by document type, then by event.">
+  <main id="content" class="stack">
+    <div id="heroActions" hidden>
+      <a class="btn btn-light" href="/upload"><i class="fa-solid fa-cloud-arrow-up"></i> Upload a file</a>
+      <button class="btn btn-glass" id="newType" type="button" hidden><i class="fa-solid fa-folder-plus"></i> New document type</button>
+    </div>
+
+    <div class="searchbar" role="search">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input id="q" type="search" placeholder="Search every file in the repository…" aria-label="Search documents" autocomplete="off" />
+    </div>
+
+    <nav class="crumbs" id="crumbs" aria-label="Folder path"></nav>
+    <section id="view" aria-live="polite"><div class="folders"><div class="skeleton" style="min-height:176px"></div><div class="skeleton" style="min-height:176px"></div><div class="skeleton" style="min-height:176px"></div></div></section>
+  </main>
+
+  <!-- Edit details -->
+  <dialog class="dlg" id="editDlg" aria-label="Edit document">
+    <form class="dlg-card left" id="editForm" novalidate>
+      <div class="dlg-head"><h3><i class="fa-solid fa-pen-to-square"></i> Edit document</h3><button type="button" class="icon-btn" data-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button></div>
+      <div class="stack" style="gap:16px">
+        <div class="field"><label for="eTitle">Title</label><input class="input" id="eTitle" maxlength="150" required /></div>
+        <div class="field"><label for="eCat">Document type</label><select class="select" id="eCat"></select></div>
+        <div class="field"><label for="eDate">Document date</label><input class="input" type="date" id="eDate" required /></div>
+        <small class="muted"><i class="fa-solid fa-circle-info"></i> Saving also updates the standardized file names. Moving to another type resets the event to General.</small>
+        <button class="btn btn-primary btn-block" type="submit">Save changes</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/js/app.js?v=4"></script>
+  <script src="/js/docs.js?v=4"></script>
+  <script>
+    (function () {
+      const { $, esc } = ISS;
+      let role = '', types = [], events = {}, docs = [], query = '';
+      const view = $('#view'), crumbs = $('#crumbs');
+      const byId = (id) => docs.find((d) => d.id === id);
+      const canManage = () => role !== 'Officer';
+
+      /* ---------- routing: #/Type/Event keeps Back/Forward working and links shareable ---------- */
+      function route() {
+        let parts = [];
+        try { parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean).map(decodeURIComponent); } catch { /* bad hash */ }
+        const cat = types.includes(parts[0]) ? parts[0] : null;
+        return { cat, ev: cat ? parts[1] || null : null };
+      }
+      const go = (cat, ev) => { location.hash = '/' + [cat, ev].filter(Boolean).map(encodeURIComponent).join('/'); };
+
+      /* ---------- data helpers ---------- */
+      const activeEventNames = (cat) => new Set((events[cat] || []).map((e) => e.name));
+      const docsIn = (cat, ev) => {
+        const names = activeEventNames(cat);
+        return docs.filter((d) => d.category === cat && (ev === 'General'
+          ? (!d.subfolder || d.subfolder === 'General' || !names.has(d.subfolder))   // orphans fall back to General
+          : d.subfolder === ev));
+      };
+
+      /* ---------- views ---------- */
+      function folderHtml({ name, sub, icon, tone, i, attrs, tools = '' }) {
+        return `<div class="folder-wrap">
+          <button class="folder ${tone}" style="--i:${Math.min(i, 10)}" ${attrs}>
+            <div class="folder__back"></div><div class="folder__sheet"></div><div class="folder__sheet"></div>
+            <div class="folder__front"><div class="folder__ico"><i class="fa-solid ${icon}"></i></div><div><h3>${esc(name)}</h3><p>${sub}</p></div></div>
+          </button>${tools}</div>`;
+      }
+      const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+
+      function renderTypes() {
+        crumbs.innerHTML = '<span class="here"><i class="fa-solid fa-house"></i> All document types</span>';
+        view.innerHTML = types.length
+          ? `<div class="folders">${types.map((c, i) => folderHtml({ name: c, i, icon: ISS.catIcon(c), tone: ISS.toneFor(c), sub: plural(docs.filter((d) => d.category === c).length, 'file'), attrs: `data-go="${esc(c)}"`, tools: role === 'Administrator' ? `<div class="folder-tools"><button class="tool danger" data-deltype="${esc(c)}" title="Delete this document type" aria-label="Delete type ${esc(c)}"><i class="fa-solid fa-trash"></i></button></div>` : '' })).join('')}</div>`
+          : '<div class="empty"><i class="fa-regular fa-folder-open"></i><strong>No document types yet</strong>Create one to start organising files.</div>';
+      }
+
+      function renderEvents(cat) {
+        crumbs.innerHTML = `<button data-home><i class="fa-solid fa-house"></i> All types</button><i class="fa-solid fa-chevron-right sep"></i><span class="here">${esc(cat)}</span>
+          <span class="grow"></span><button class="btn btn-primary btn-sm" id="addEvent" style="color:#fff"><i class="fa-solid fa-calendar-plus"></i> Add event</button>`;
+        const tone = ISS.toneFor(cat);
+        const general = folderHtml({ name: 'General', i: 0, icon: 'fa-calendar-day', tone: 't-indigo', sub: `${plural(docsIn(cat, 'General').length, 'file')} · no event`, attrs: 'data-go-event="General"' });
+        const list = (events[cat] || []).map((e, i) => folderHtml({
+          name: e.name, i: i + 1, icon: 'fa-ticket', tone, sub: plural(docsIn(cat, e.name).length, 'file'), attrs: `data-go-event="${esc(e.name)}"`,
+          tools: canManage() ? `<div class="folder-tools"><button class="tool" data-rename="${e.id}" title="Rename event" aria-label="Rename ${esc(e.name)}"><i class="fa-solid fa-pen"></i></button><button class="tool danger" data-delete="${e.id}" title="Move event to Recycle Bin" aria-label="Delete ${esc(e.name)}"><i class="fa-solid fa-trash"></i></button></div>` : '',
+        })).join('');
+        view.innerHTML = `<div class="folders">${general}${list}</div>`;
+      }
+
+      function renderFiles(cat, ev) {
+        const list = docsIn(cat, ev);
+        crumbs.innerHTML = `<button data-home><i class="fa-solid fa-house"></i> All types</button><i class="fa-solid fa-chevron-right sep"></i>
+          <button data-back>${esc(cat)}</button><i class="fa-solid fa-chevron-right sep"></i><span class="here">${esc(ev)}</span><span class="grow"></span>
+          <a class="btn btn-primary btn-sm" style="color:#fff" href="/upload?category=${encodeURIComponent(cat)}&subfolder=${encodeURIComponent(ev)}"><i class="fa-solid fa-cloud-arrow-up"></i> Upload here</a>`;
+        view.innerHTML = list.length
+          ? `<div class="doc-list">${list.map((d) => ISS.docs.row(d, role, { edit: true, remove: true })).join('')}</div>`
+          : '<div class="empty"><i class="fa-regular fa-folder-open"></i><strong>This folder is empty</strong>Use “Upload here” to add the first file.</div>';
+      }
+
+      function renderSearch(q) {
+        const t = q.toLowerCase();
+        const list = docs.filter((d) => `${d.title} ${d.standardized_file_name} ${d.category} ${d.subfolder || ''}`.toLowerCase().includes(t));
+        crumbs.innerHTML = `<span class="here"><i class="fa-solid fa-magnifying-glass"></i> ${plural(list.length, 'result')} for “${esc(q)}”</span>`;
+        view.innerHTML = list.length
+          ? `<div class="doc-list">${list.slice(0, 100).map((d) => ISS.docs.row(d, role, { edit: true, remove: true })).join('')}</div>`
+          : '<div class="empty"><i class="fa-solid fa-magnifying-glass"></i><strong>No matching documents</strong>Try a different word.</div>';
+      }
+
+      function render() {
+        if (query.trim()) return renderSearch(query.trim());
+        const { cat, ev } = route();
+        if (!cat) renderTypes();
+        else if (!ev) renderEvents(cat);
+        else renderFiles(cat, ev);
+      }
+
+      /* ---------- data loading ---------- */
+      async function load() {
+        const [f, d] = await Promise.all([ISS.api('/api/folders'), ISS.api('/api/documents')]);
+        types = f.types; events = f.events; docs = d.documents;
+        render();
+      }
+
+      /* ---------- folder & type actions ---------- */
+      async function mutate(task, okMsg) {
+        try { await task(); ISS.toast(okMsg); await load(); } catch (err) { ISS.toast(err.message, 'err'); }
+      }
+
+      async function newType() {
+        const name = await ISS.prompt({ icon: 'fa-folder-plus', title: 'New document type', text: 'Types are the top-level folders, like Reports or Memos.', confirm: 'Create type',
+          input: { placeholder: 'e.g. Legal', validate: (v) => !/^[\w][\w &.-]{1,39}$/.test(v) ? 'Use 2–40 letters, numbers or spaces.' : types.some((t) => t.toLowerCase() === v.toLowerCase()) ? 'That type already exists.' : '' } });
+        if (name) mutate(() => ISS.api('/api/types', { method: 'POST', body: { name } }), `“${name}” created.`);
+      }
+
+      async function deleteType(name) {
+        const n = docs.filter((d) => d.category === name).length;
+        const ok = await ISS.confirm({ icon: 'fa-trash-can', tone: 'danger', title: `Delete type “${name}”?`, text: `The type, its event folders and ${n} document${n === 1 ? '' : 's'} will move to the Recycle Bin. You can restore everything from there.`, confirm: 'Move to Recycle Bin' });
+        if (ok) mutate(() => ISS.api(`/api/types/${encodeURIComponent(name)}`, { method: 'DELETE' }), `“${name}” moved to the Recycle Bin.`);
+      }
+
+      async function addEvent(cat) {
+        const name = await ISS.prompt({ icon: 'fa-calendar-plus', title: `New event in ${cat}`, confirm: 'Add event',
+          input: { placeholder: 'e.g. Foundation Day', validate: (v) => v.length < 2 ? 'Use at least 2 characters.' : v.toLowerCase() === 'general' ? '“General” is reserved.' : (events[cat] || []).some((e) => e.name.toLowerCase() === v.toLowerCase()) ? 'That event already exists.' : '' } });
+        if (name) mutate(() => ISS.api('/api/folders', { method: 'POST', body: { category: cat, name } }), 'Event created.');
+      }
+
+      async function renameEvent(cat, id) {
+        const ev = (events[cat] || []).find((e) => e.id === id); if (!ev) return;
+        const name = await ISS.prompt({ icon: 'fa-pen', title: 'Rename event', confirm: 'Save name',
+          input: { value: ev.name, validate: (v) => v.length < 2 ? 'Use at least 2 characters.' : v.toLowerCase() === 'general' ? '“General” is reserved.' : (events[cat] || []).some((e) => e.id !== id && e.name.toLowerCase() === v.toLowerCase()) ? 'That event already exists.' : '' } });
+        if (name && name !== ev.name) mutate(() => ISS.api(`/api/folders/${id}`, { method: 'PUT', body: { name } }), 'Event renamed.');
+      }
+
+      async function deleteEvent(cat, id) {
+        const ev = (events[cat] || []).find((e) => e.id === id); if (!ev) return;
+        const ok = await ISS.confirm({ icon: 'fa-trash-can', tone: 'danger', title: `Delete “${ev.name}”?`, text: 'The event moves to the Recycle Bin. Its files stay safe and show under General until you restore it.', confirm: 'Move to Recycle Bin' });
+        if (ok) mutate(() => ISS.api(`/api/folders/${id}`, { method: 'DELETE' }), 'Event moved to the Recycle Bin.');
+      }
+
+      async function removeDoc(doc) {
+        const ok = await ISS.confirm({ icon: 'fa-trash-can', tone: 'danger', title: 'Move to Recycle Bin?', text: `“${doc.title}” will leave the active repository. You can restore it later.`, confirm: 'Move to Recycle Bin' });
+        if (ok) mutate(() => ISS.api(`/api/documents/soft-delete/${doc.id}`, { method: 'POST' }), 'Moved to the Recycle Bin.');
+      }
+
+      /* ---------- edit dialog ---------- */
+      const editDlg = $('#editDlg'), editForm = $('#editForm');
+      let editing = null;
+      function openEdit(doc) {
+        editing = doc;
+        $('#eTitle').value = doc.title; $('#eDate').value = doc.document_date;
+        $('#eCat').innerHTML = types.map((t) => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
+        $('#eCat').value = doc.category;
+        editDlg.showModal();
+      }
+      editForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const body = { title: $('#eTitle').value.trim(), category: $('#eCat').value, date: $('#eDate').value };
+        if (!body.title || !body.date) return ISS.toast('Title and date are required.', 'warn');
+        try {
+          await ISS.busy($('button[type=submit]', editForm), () => ISS.api(`/api/documents/${editing.id}`, { method: 'PUT', body }), 'Saving…');
+          editDlg.close(); ISS.toast('Document updated.'); await load();
+        } catch (err) { ISS.toast(err.message, 'err'); }
+      });
+
+      /* ---------- wiring ---------- */
+      view.addEventListener('click', (e) => {
+        const t = e.target.closest('[data-go],[data-go-event],[data-rename],[data-delete],[data-deltype]'); if (!t) return;
+        const { cat } = route();
+        if (t.dataset.deltype) deleteType(t.dataset.deltype);
+        else if (t.dataset.go) go(t.dataset.go);
+        else if (t.dataset.goEvent) go(cat, t.dataset.goEvent);
+        else if (t.dataset.rename) renameEvent(cat, +t.dataset.rename);
+        else if (t.dataset.delete) deleteEvent(cat, +t.dataset.delete);
+      });
+      crumbs.addEventListener('click', (e) => {
+        const { cat } = route();
+        if (e.target.closest('[data-home]')) { $('#q').value = ''; query = ''; go(); }
+        else if (e.target.closest('[data-back]')) go(cat);
+        else if (e.target.closest('#addEvent')) addEvent(cat);
+      });
+      ISS.docs.bind(view, byId, { edit: openEdit, remove: removeDoc, changed: (d) => { d.approval_status = 'Approved'; render(); } });
+      $('#newType').addEventListener('click', newType);
+      $('#q').addEventListener('input', ISS.debounce((e) => { query = e.target.value; render(); }, 140));
+      addEventListener('hashchange', render);
+
+      ISS.ready.then(async (me) => {
+        role = me.role; $('#newType').hidden = !canManage();
+        try { await load(); } catch (err) { view.innerHTML = `<div class="empty"><i class="fa-solid fa-triangle-exclamation"></i><strong>Could not load documents</strong>${esc(err.message)}</div>`; }
+      });
+    })();
+  </script>
+</body>
+</html>
